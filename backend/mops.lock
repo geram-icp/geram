@@ -1,9 +1,8 @@
 {
   "version": 3,
   "mopsTomlDepsHash": "e5db3fc9692ff89d642b507ed57d84905b8820ae093945051f6bdac484449fb3",
-  "localDepsHash": "8b4d07ff6c2f54d48580db7ab805cf23a486177827a84cb1cf2173a54357f9dc",
+  "localDepsHash": "c59c4588baaeacd63f8db2b4f839fc64f889cf7ce1958e137f8c92f48c943797",
   "deps": {
-    "array": "https://github.com/aviate-labs/array.mo#v0.2.1@89bb25b7f24ab31082ee3d843d720404eb1d0304",
     "base": "0.16.0",
     "candid-old": "https://github.com/gekctek/motoko_candid#v1.0.1@4f0c445a4f998d4d07b616fafd463eea8f52e4bc",
     "candy": "./candy-patched",
@@ -11,8 +10,6 @@
     "candy_0_2_0": "https://github.com/icdevs/candy_library#0.2.0@4fc5aebec44355da94a4d3ebef87623e4545d89a",
     "class-plus": "0.2.1",
     "core": "2.5.0",
-    "encoding": "https://github.com/aviate-labs/encoding.mo#v0.4.1@2711d18727e954b11afc0d37945608512b5fbce2",
-    "encoding_0_4_1": "https://github.com/aviate-labs/encoding.mo#v0.4.1@2711d18727e954b11afc0d37945608512b5fbce2",
     "icrc7-mo": "0.6.0",
     "map7": "https://github.com/ZhenyaUsenko/motoko-hash-map#v7.0.0@f0e25632e5da80118274e78ceeb5bec95f3c2b81",
     "map9": "https://github.com/ZhenyaUsenko/motoko-hash-map#v9.0.1@10b68f6ea8df5e72dfa4c07a50c8bb60a916c233",
@@ -94,10 +91,6 @@
     "vector@0.2.0": {}
   },
   "github": {
-    "array": {
-      "resolved": "89bb25b7f24ab31082ee3d843d720404eb1d0304",
-      "hash": "d61f27a712f75b7aecd89d0acca09bd4fc6bfd003754fdb87e746310acd90441"
-    },
     "candid-old": {
       "resolved": "4f0c445a4f998d4d07b616fafd463eea8f52e4bc",
       "hash": "03703b97d16a28f08dd57dbe2b8a71f85cb8bad0082daa9c0628362058eb7748"
@@ -109,10 +102,6 @@
     "candy_0_2_0": {
       "resolved": "4fc5aebec44355da94a4d3ebef87623e4545d89a",
       "hash": "7ca51f652101914407ea3aa8c7298574e7295db77768e142eac03ae4d3ca394b"
-    },
-    "encoding_0_4_1": {
-      "resolved": "2711d18727e954b11afc0d37945608512b5fbce2",
-      "hash": "2a4800ffbc75376b5624c715173a6395fa870e3045f0c736db5bdbe2047972a4"
     },
     "map7": {
       "resolved": "f0e25632e5da80118274e78ceeb5bec95f3c2b81",
