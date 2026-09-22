@@ -1,0 +1,70 @@
+import ClassPlus "mo:class-plus";
+import ICRC7 "mo:icrc7-mo";
+import Principal "mo:base/Principal";
+import Protocol "./Protocol";
+
+shared ({ caller = _owner }) persistent actor class GERAM() = this {
+
+  transient let canisterId = Principal.fromActor(this);
+
+  transient let org_icdevs_class_plus_manager =
+    ClassPlus.ClassPlusInitializationManager<system>(
+      _owner,
+      canisterId,
+      true
+    );
+
+  transient let geramEnvironment : ICRC7.Environment = {
+    add_ledger_transaction = null;
+    can_transfer = null;
+    can_mint = null;
+    can_update = null;
+    can_burn = null;
+  };
+
+  func getGeramEnvironment() : ICRC7.Environment {
+    geramEnvironment
+  };
+
+  transient let geramArgs : ICRC7.InitArgList = {
+    deployer = _owner;
+    symbol = ?"GERAM";name = ?"GERAM";
+    description = ?"Green Energy & Resource Asset Mechanism";
+    logo = null;
+    supply_cap = null;
+    max_query_batch_size = null;
+    max_update_batch_size = null;
+    default_take_value = null;
+    max_take_value = null;
+    max_memo_size = null;
+    allow_transfers = ?true;
+    permitted_drift = null;
+    tx_window = null;
+    burn_account = null;
+    supported_standards = null;
+  };
+
+  include ICRC7Mixin({
+    ICRC7.defaultMixinArgs(org_icdevs_class_plus_manager) with
+    args = ?geramArgs;
+    pullEnvironment = ?getGeramEnvironment;
+    onInitialize = null;
+  });
+
+  // ============================================================
+  // GERAM Protocol v1.0 — public type aliases
+  // ============================================================
+
+  public type ProjectType = Protocol.ProjectType;
+  public type ProjectStatus = Protocol.ProjectStatus;
+  public type RiskLevel = Protocol.RiskLevel;
+  public type AssetReference = Protocol.AssetReference;
+  public type Valuation = Protocol.Valuation;
+  public type FinancialTerms = Protocol.FinancialTerms;
+  public type Project = Protocol.Project;
+  public type GeramCertificate = Protocol.GeramCertificate;
+  public type OrganizationRole = Protocol.OrganizationRole;
+  public type OrganizationNode = Protocol.OrganizationNode;
+  public type MarketSnapshot = Protocol.MarketSnapshot;
+
+};

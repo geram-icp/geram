@@ -1,0 +1,37 @@
+
+
+
+type Certificate = record {
+  id : text;
+  owner : principal;
+  issuer : principal;
+  title : text;
+  certificateType : text;
+  value : nat;
+  metadata : text;
+  image : text;
+  externalUrl : text;
+  issuedAt : int;
+  active : bool;
+};
+
+service : {
+  issueCertificate : (
+    text,
+    principal,
+    text,
+    text,
+    nat,
+    text,
+    text,
+    text
+  ) -> (bool);
+
+  getCertificate : (text) -> (opt Certificate) query;
+
+  verifyCertificate : (text) -> (bool) query;
+
+  getOwner : (text) -> (opt principal) query;
+
+  transferCertificate : (text, principal) -> (bool);
+}

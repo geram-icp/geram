@@ -1,0 +1,15 @@
+[toolchain]
+moc = "1.14.0"
+
+[moc]
+args = [ "--default-persistent-actors" ]
+
+[dependencies]
+base = "0.16.0"
+"base@0.7.3" = "0.7.3"
+rep-indy-hash = "0.2.1"
+icrc7-mo = "0.6.0"
+
+[canisters.backend]
+main = "src/main.mo"
+candid = "backend.did"

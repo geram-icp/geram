@@ -1,0 +1,4 @@
+[package]
+name = "encoding_0_4_1"
+version = "0.4.1-patched"
+description = "Patched Hex encoding compatible with modern Motoko base"
