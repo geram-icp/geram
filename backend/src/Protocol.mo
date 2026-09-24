@@ -110,4 +110,154 @@ module {
     valuation_reference : ?Text;
   };
 
+
+  // ============================================================
+  // HAMIFUND — AI-DeFi Specialized Decentralized Fund Layer
+  // ============================================================
+
+  public type FundType = {
+    #Housing;
+    #Energy;
+    #Tourism;
+    #Production;
+    #Logistics;
+    #Infrastructure;
+    #MultiSector;
+    #Other;
+  };
+
+  public type FundStatus = {
+    #Draft;
+    #Active;
+    #Paused;
+    #Closed;
+    #Matured;
+  };
+
+  public type FundStrategy = {
+    #Hold;
+    #Trade;
+    #Liquidity;
+    #Collateral;
+    #Income;
+    #MultiStrategy;
+  };
+
+  public type AIStrategyStatus = {
+    #Disabled;
+    #Advisory;
+    #Assisted;
+    #Automated;
+  };
+
+  public type AIModelReference = {
+    model_id : Text;
+    model_version : Text;
+    provider : ?Text;
+    endpoint_reference : ?Text;
+    enabled : Bool;
+  };
+
+  public type FundRiskParameters = {
+    max_asset_weight_bps : Nat;
+    max_single_project_weight_bps : Nat;
+    max_risk_level : RiskLevel;
+    min_liquidity_bps : Nat;
+    max_drawdown_bps : Nat;
+  };
+
+  public type HamiFund = {
+    fund_id : Text;
+    name : Text;
+    title : Text;
+    description : Text;
+    fund_type : FundType;
+    status : FundStatus;
+    strategy : FundStrategy;
+
+    base_currency : Text;
+    manager_id : Text;
+
+    created_at : Int;
+    activation_timestamp : ?Int;
+    maturity_timestamp : ?Int;
+
+    target_value : Nat;
+    minimum_position_value : ?Nat;
+
+    ai_status : AIStrategyStatus;
+    ai_model : ?AIModelReference;
+    risk_parameters : FundRiskParameters;
+
+    decentralized : Bool;
+    smart_contract_reference : ?Text;
+
+    allowed_geram : Bool;
+    allowed_tokens : [Text];
+
+    metadata_uri : ?Text;
+  };
+
+  public type FundAsset = {
+    fund_id : Text;
+    asset_id : Text;
+    asset_type : Text;
+    certificate_id : ?Text;
+    token_id : ?Nat;
+    project_id : ?Text;
+
+    quantity : Nat;
+    acquisition_value : Nat;
+    current_value : Nat;
+
+    valuation_timestamp : Int;
+    risk_level : RiskLevel;
+    active : Bool;
+  };
+
+  public type FundPosition = {
+    position_id : Text;
+    fund_id : Text;
+    owner : Principal;
+
+    deposited_value : Nat;
+    current_value : Nat;
+
+    asset_count : Nat;
+    share_units : Nat;
+
+    created_at : Int;
+    updated_at : Int;
+    active : Bool;
+  };
+
+  public type FundTransactionType = {
+    #Deposit;
+    #Withdrawal;
+    #AssetAcquire;
+    #AssetSell;
+    #Rebalance;
+    #Distribution;
+    #Fee;
+    #Adjustment;
+  };
+
+  public type FundTransaction = {
+    transaction_id : Text;
+    fund_id : Text;
+    position_id : ?Text;
+    transaction_type : FundTransactionType;
+
+    actor_principal : Principal;
+    asset_id : ?Text;
+    certificate_id : ?Text;
+    token_id : ?Nat;
+
+    value : Nat;
+    timestamp : Int;
+
+    reference : ?Text;
+    ai_generated : Bool;
+  };
+
 }
