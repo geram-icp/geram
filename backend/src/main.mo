@@ -59,6 +59,11 @@ shared ({ caller = _owner }) persistent actor class GERAM() = this {
   // GERAM Protocol v1.0 — public type aliases
   // ============================================================
 
+  public type AssetStatus = Protocol.AssetStatus;
+  public type Asset = Protocol.Asset;
+  public type EnergyVerificationStatus = Protocol.EnergyVerificationStatus;
+  public type EnergyVerification = Protocol.EnergyVerification;
+
   public type ProjectType = Protocol.ProjectType;
   public type ProjectStatus = Protocol.ProjectStatus;
   public type RiskLevel = Protocol.RiskLevel;
@@ -90,6 +95,16 @@ shared ({ caller = _owner }) persistent actor class GERAM() = this {
   // ============================================================
   // GERAM-P04 — API Result Types
   // ============================================================
+
+  public type AssetResult = {
+    #ok : Asset;
+    #err : Text;
+  };
+
+  public type EnergyVerificationResult = {
+    #ok : EnergyVerification;
+    #err : Text;
+  };
 
   public type ProjectResult = {
     #ok : Project;
@@ -138,6 +153,8 @@ shared ({ caller = _owner }) persistent actor class GERAM() = this {
   // ============================================================
 
   stable var projects : [Project] = [];
+  stable var assets : [Asset] = [];
+  stable var energyVerifications : [EnergyVerification] = [];
   stable var certificates : [GeramCertificate] = [];
   stable var marketSnapshots : [MarketSnapshot] = [];
 
@@ -228,6 +245,133 @@ func isOwner(caller : Principal) : Bool {
   };
 
   // ============================================================
+  // ============================================================
+  // GERAM-P06 — ASSET API
+  // ============================================================
+
+  public shared ({ caller }) func create_asset(asset : Asset) : async AssetResult {
+    if (not isOwner(caller)) {
+      return #err("Unauthorized");
+    };
+
+    for (existing in assets.vals()) {
+      if (existing.asset_id == asset.asset_id) {
+        return #err("Asset already exists");
+      };
+    };
+
+    var projectExists = false;
+
+    for (project in projects.vals()) {
+      if (project.project_id == asset.project_id) {
+        projectExists := true;
+      };
+    };
+
+    if (not projectExists) {
+      return #err("Referenced project does not exist");
+    };
+
+    assets := Array.append<Asset>(assets, [asset]);
+
+    #ok(asset)
+  };
+
+  public query func get_asset(asset_id : Text) : async ?Asset {
+    for (asset in assets.vals()) {
+      if (asset.asset_id == asset_id) {
+        return ?asset;
+      };
+    };
+
+    null
+  };
+
+  public query func list_assets() : async [Asset] {
+    assets
+  };
+
+  // ============================================================
+  // GERAM-P06 — ENERGY VERIFICATION API
+  // ============================================================
+
+  public shared ({ caller }) func create_energy_verification(
+    verification : EnergyVerification
+  ) : async EnergyVerificationResult {
+    if (not isOwner(caller)) {
+      return #err("Unauthorized");
+    };
+
+    if (
+      verification.measurement_period_end
+      < verification.measurement_period_start
+    ) {
+      return #err("Invalid measurement period");
+    };
+
+    for (existing in energyVerifications.vals()) {
+      if (existing.verification_id == verification.verification_id) {
+        return #err("Energy verification already exists");
+      };
+    };
+
+    var projectExists = false;
+
+for (project in projects.vals()) {
+      if (project.project_id == verification.project_id) {
+        projectExists := true;
+      };
+    };
+
+    if (not projectExists) {
+      return #err("Referenced project does not exist");
+    };
+
+    var assetExists = false;
+    var assetProjectMatches = false;
+
+    for (asset in assets.vals()) {
+      if (asset.asset_id == verification.asset_id) {
+        assetExists := true;
+
+        if (asset.project_id == verification.project_id) {
+          assetProjectMatches := true;
+        };
+      };
+    };
+
+    if (not assetExists) {
+      return #err("Referenced asset does not exist");
+    };
+
+    if (not assetProjectMatches) {
+      return #err("Asset does not belong to referenced project");
+    };
+
+    energyVerifications := Array.append<EnergyVerification>(
+      energyVerifications,
+      [verification]
+    );
+
+    #ok(verification)
+  };
+
+  public query func get_energy_verification(
+    verification_id : Text
+  ) : async ?EnergyVerification {
+    for (verification in energyVerifications.vals()) {
+      if (verification.verification_id == verification_id) {
+        return ?verification;
+      };
+    };
+
+    null
+  };
+
+  public query func list_energy_verifications() : async [EnergyVerification] {
+    energyVerifications
+  };
+
   // P04-04 — Create Certificate Registry Record
   //
   // توجه: این تابع هنوز NFT mint نمی‌کند.

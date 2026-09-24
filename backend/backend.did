@@ -1,4 +1,4 @@
-type Value = 
+type Value =
  variant {
    Array: vec Value;
    Blob: blob;
@@ -7,12 +7,25 @@ type Value =
    Nat: nat;
    Text: text;
  };
-type TransferResult = 
+type Valuation =
+ record {
+   base_value: nat;
+   expert_reference: opt text;
+   methodology: opt text;
+   valuation_date: int;
+   valuation_unit: text;
+ };
+type ValidationResult =
+ variant {
+   err: text;
+   ok: text;
+ };
+type TransferResult =
  variant {
    Err: TransferError;
    Ok: nat;
  };
-type TransferError = 
+type TransferError =
  variant {
    CreatedInFuture: record {ledger_time: nat64;};
    Duplicate: record {duplicate_of: nat;};
@@ -29,7 +42,7 @@ type TransferError =
    TooOld;
    Unauthorized;
  };
-type TransferArg = 
+type TransferArg =
  record {
    created_at_time: opt nat64;
    from_subaccount: opt blob;
@@ -40,31 +53,160 @@ type TransferArg =
 type TokenMetadataResponse = vec TokenMetadataItem;
 type TokenMetadataRequest = vec nat;
 type TokenMetadataItem = opt Metadata;
-type SupportedStandardsResponse = 
+type SupportedStandardsResponse =
  vec record {
        name: text;
        url: text;
      };
+type RiskLevel =
+ variant {
+   High;
+   Low;
+   Medium;
+ };
+type ProjectType =
+ variant {
+   Energy;
+   Housing;
+   Infrastructure;
+   Logistics;
+   Other;
+   Production;
+ };
+type ProjectStatus =
+ variant {
+   Active;
+   Approved;
+   Completed;
+   Draft;
+   Matured;
+   Suspended;
+ };
+type ProjectResult =
+ variant {
+   err: text;
+   ok: Project;
+ };
+type Project =
+ record {
+   asset: AssetReference;
+   description: text;
+   financial_terms: FinancialTerms;
+   issuer_id: text;
+   project_id: text;
+   project_type: ProjectType;
+   risk_level: RiskLevel;
+   status: ProjectStatus;
+   title: text;
+   valuation: Valuation;
+ };
 type OwnerOfResponse = vec opt Account;
 type OwnerOfRequest = vec nat;
-type Metadata = 
+type Metadata =
  vec record {
        text;
        Value;
      };
-type Map = 
+type MarketSnapshotResult =
+ variant {
+   err: text;
+   ok: MarketSnapshot;
+ };
+type MarketSnapshot =
+ record {
+   annual_return_bps: opt nat;
+   base_value: nat;
+   certificate_id: text;
+   demand_level: opt nat;
+   indicative_value: nat;
+   maturity_timestamp: int;
+   risk_level: RiskLevel;
+   supply_level: opt nat;
+   valuation_reference: opt text;
+   valuation_timestamp: int;
+ };
+type Map =
  vec record {
        text;
        Value;
      };
-type GERAM = 
+type HamiFundResult =
+ variant {
+   err: text;
+   ok: HamiFund;
+ };
+type HamiFund =
+ record {
+   activation_timestamp: opt int;
+   ai_model: opt AIModelReference;
+   ai_status: AIStrategyStatus;
+   allowed_geram: bool;
+   allowed_tokens: vec text;
+   base_currency: text;
+   created_at: int;
+   decentralized: bool;
+   description: text;
+   fund_id: text;
+   fund_type: FundType;
+   manager_id: text;
+   maturity_timestamp: opt int;
+   metadata_uri: opt text;
+   minimum_position_value: opt nat;
+   name: text;
+   risk_parameters: FundRiskParameters;
+   smart_contract_reference: opt text;
+   status: FundStatus;
+   strategy: FundStrategy;
+   target_value: nat;
+   title: text;
+ };
+type GeramCertificate =
+ record {
+   annual_return_bps: opt nat;
+   base_value: nat;
+   certificate_id: text;
+   currency: text;
+   face_value: nat;
+   initial_holder: principal;
+   issue_timestamp: int;
+   issuer_id: text;
+   maturity_timestamp: int;
+   physical_certificate_available: bool;
+   physical_certificate_hash: opt text;
+   project_id: text;
+   qr_reference: opt text;
+   risk_level: RiskLevel;
+   token_id: nat;
+ };
+type GERAM =
  service {
+   create_asset: (asset: Asset) -> (AssetResult);
+   create_certificate: (certificate: GeramCertificate) -> (CertificateResult);
+   create_energy_verification: (verification: EnergyVerification) ->
+    (EnergyVerificationResult);
+   create_fund_asset: (asset: FundAsset) -> (FundAssetResult);
+   create_fund_position: (position: FundPosition) -> (FundPositionResult);
+   create_hami_fund: (fund: HamiFund) -> (HamiFundResult);
+   create_market_snapshot: (snapshot: MarketSnapshot) ->
+    (MarketSnapshotResult);
+   create_project: (project: Project) -> (ProjectResult);
+   get_asset: (asset_id: text) -> (opt Asset) query;
+   get_certificate: (certificate_id: text) -> (opt GeramCertificate) query;
+   get_energy_verification: (verification_id: text) ->
+    (opt EnergyVerification) query;
+   get_fund_asset: (asset_id: text) -> (opt FundAsset) query;
+   get_fund_position: (position_id: text) -> (opt FundPosition) query;
+   get_fund_transaction: (transaction_id: text) ->
+    (opt FundTransaction) query;
+   get_hami_fund: (fund_id: text) -> (opt HamiFund) query;
    get_icrc85_stats: () ->
     (record {
        activeActions: nat;
        lastActionReported: opt nat;
        nextCycleActionId: opt nat;
      }) query;
+   get_market_snapshot: (certificate_id: text) -> (opt MarketSnapshot) query;
+   get_project: (project_id: text) -> (opt Project) query;
    icrc7_atomic_batch_transfers: () -> (opt bool) query;
    icrc7_balance_of: (args: BalanceOfRequest) -> (BalanceOfResponse) query;
    icrc7_collection_metadata: () -> (CollectionMetadataResponse) query;
@@ -89,17 +231,233 @@ type GERAM =
    icrc7_total_supply: () -> (nat) query;
    icrc7_transfer: (args: vec TransferArg) -> (vec opt TransferResult);
    icrc7_tx_window: () -> (opt nat) query;
+   list_assets: () -> (vec Asset) query;
+   list_certificates: () -> (vec GeramCertificate) query;
+   list_energy_verifications: () -> (vec EnergyVerification) query;
+   list_fund_assets: (fund_id: opt text) -> (vec FundAsset) query;
+   list_fund_positions: (fund_id: opt text) -> (vec FundPosition) query;
+   list_fund_transactions: (fund_id: opt text) -> (vec FundTransaction) query;
+   list_hami_funds: () -> (vec HamiFund) query;
+   list_market_snapshots: () -> (vec MarketSnapshot) query;
+   list_projects: () -> (vec Project) query;
+   record_fund_transaction: (transaction: FundTransaction) ->
+    (FundTransactionResult);
+   validate_certificate: (certificate_id: text) -> (ValidationResult) query;
+   validate_fund_asset: (asset_id: text) -> (ValidationResult) query;
+   validate_fund_position: (position_id: text) -> (ValidationResult) query;
+   validate_fund_transaction: (transaction_id: text) ->
+    (ValidationResult) query;
+   validate_hami_fund: (fund_id: text) -> (ValidationResult) query;
+   validate_project: (project_id: text) -> (ValidationResult) query;
  };
-type CollectionMetadataResponse = 
+type FundType =
+ variant {
+   Energy;
+   Housing;
+   Infrastructure;
+   Logistics;
+   MultiSector;
+   Other;
+   Production;
+   Tourism;
+ };
+type FundTransactionType =
+ variant {
+   Adjustment;
+   AssetAcquire;
+   AssetSell;
+   Deposit;
+   Distribution;
+   Fee;
+   Rebalance;
+   Withdrawal;
+ };
+type FundTransactionResult =
+ variant {
+   err: text;
+   ok: FundTransaction;
+ };
+type FundTransaction =
+ record {
+   actor_principal: principal;
+   ai_generated: bool;
+   asset_id: opt text;
+   certificate_id: opt text;
+   fund_id: text;
+   position_id: opt text;
+   reference: opt text;
+   timestamp: int;
+   token_id: opt nat;
+   transaction_id: text;
+   transaction_type: FundTransactionType;
+   value: nat;
+ };
+type FundStrategy =
+ variant {
+   Collateral;
+   Hold;
+   Income;
+   Liquidity;
+   MultiStrategy;
+   Trade;
+ };
+type FundStatus =
+ variant {
+   Active;
+   Closed;
+   Draft;
+   Matured;
+   Paused;
+ };
+type FundRiskParameters =
+ record {
+   max_asset_weight_bps: nat;
+   max_drawdown_bps: nat;
+   max_risk_level: RiskLevel;
+   max_single_project_weight_bps: nat;
+   min_liquidity_bps: nat;
+ };
+type FundPositionResult =
+ variant {
+   err: text;
+   ok: FundPosition;
+ };
+type FundPosition =
+ record {
+   active: bool;
+   asset_count: nat;
+   created_at: int;
+   current_value: nat;
+   deposited_value: nat;
+   fund_id: text;
+   owner: principal;
+   position_id: text;
+   share_units: nat;
+   updated_at: int;
+ };
+type FundAssetResult =
+ variant {
+   err: text;
+   ok: FundAsset;
+ };
+type FundAsset =
+ record {
+   acquisition_value: nat;
+   active: bool;
+   asset_id: text;
+   asset_type: text;
+   certificate_id: opt text;
+   current_value: nat;
+   fund_id: text;
+   project_id: opt text;
+   quantity: nat;
+   risk_level: RiskLevel;
+   token_id: opt nat;
+   valuation_timestamp: int;
+ };
+type FinancialTerms =
+ record {
+   annual_return_bps: opt nat;
+   currency: text;
+   face_value: nat;
+   liquidity_guaranteed: bool;
+   maturity_timestamp: int;
+ };
+type EnergyVerificationStatus =
+ variant {
+   Draft;
+   Expired;
+   Pending;
+   Rejected;
+   Verified;
+ };
+type EnergyVerificationResult =
+ variant {
+   err: text;
+   ok: EnergyVerification;
+ };
+type EnergyVerification =
+ record {
+   asset_id: text;
+   baseline_energy_m3: nat;
+   certificate_id: opt text;
+   energy_saved_m3: nat;
+   energy_saved_percent: nat;
+   heater_id: opt text;
+   heater_model: opt text;
+   measured_energy_m3: nat;
+   measurement_period_end: int;
+   measurement_period_start: int;
+   project_id: text;
+   status: EnergyVerificationStatus;
+   verification_id: text;
+   verification_method: text;
+   verification_reference: opt text;
+   verification_timestamp: int;
+   verifier_id: text;
+ };
+type CollectionMetadataResponse =
  vec record {
        text;
        Value;
      };
+type CertificateResult =
+ variant {
+   err: text;
+   ok: GeramCertificate;
+ };
 type BalanceOfResponse = vec nat;
 type BalanceOfRequest = vec Account;
-type Account = 
+type AssetStatus =
+ variant {
+   Active;
+   Draft;
+   Inactive;
+   Retired;
+ };
+type AssetResult =
+ variant {
+   err: text;
+   ok: Asset;
+ };
+type AssetReference =
+ record {
+   asset_id: text;
+   asset_type: text;
+   description: text;
+   registry_reference: opt text;
+ };
+type Asset =
+ record {
+   asset_id: text;
+   asset_type: text;
+   created_at: int;
+   description: text;
+   external_reference: opt text;
+   metadata_uri: opt text;
+   project_id: text;
+   registry_reference: opt text;
+   status: AssetStatus;
+   title: text;
+ };
+type Account =
  record {
    owner: principal;
    subaccount: opt blob;
+ };
+type AIStrategyStatus =
+ variant {
+   Advisory;
+   Assisted;
+   Automated;
+   Disabled;
+ };
+type AIModelReference =
+ record {
+   enabled: bool;
+   endpoint_reference: opt text;
+   model_id: text;
+   model_version: text;
+   provider: opt text;
  };
 service : () -> GERAM

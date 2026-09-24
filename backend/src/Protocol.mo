@@ -260,4 +260,66 @@ module {
     ai_generated : Bool;
   };
 
+
+  // ============================================================
+  // GERAM-P06 — ASSET REGISTRY
+  // ============================================================
+
+  public type AssetStatus = {
+    #Draft;
+    #Active;
+    #Inactive;
+    #Retired;
+  };
+
+  public type Asset = {
+    asset_id : Text;
+    project_id : Text;
+    asset_type : Text;
+    title : Text;
+    description : Text;
+    registry_reference : ?Text;
+    external_reference : ?Text;
+    status : AssetStatus;
+    created_at : Int;
+    metadata_uri : ?Text;
+  };
+
+  // ============================================================
+  // GERAM-P06 — ENERGY VERIFICATION REGISTRY
+  // ============================================================
+
+  public type EnergyVerificationStatus = {
+    #Draft;
+    #Pending;
+    #Verified;
+    #Rejected;
+    #Expired;
+  };
+
+  public type EnergyVerification = {
+    verification_id : Text;
+    project_id : Text;
+    asset_id : Text;
+    certificate_id : ?Text;
+
+    heater_id : ?Text;
+    heater_model : ?Text;
+
+    measurement_period_start : Int;
+    measurement_period_end : Int;
+
+    baseline_energy_m3 : Nat;
+    measured_energy_m3 : Nat;
+    energy_saved_m3 : Nat;
+    energy_saved_percent : Nat;
+
+    verification_method : Text;
+    verifier_id : Text;
+    verification_reference : ?Text;
+
+    verification_timestamp : Int;
+    status : EnergyVerificationStatus;
+  };
+
 }
