@@ -10,6 +10,271 @@ import { IDL } from '@icp-sdk/core/candid';
 
 export const idlFactory = ({ IDL }) => {
   const Value = IDL.Rec();
+  const AssetStatus = IDL.Variant({
+    'Inactive' : IDL.Null,
+    'Active' : IDL.Null,
+    'Draft' : IDL.Null,
+    'Retired' : IDL.Null,
+  });
+  const Asset = IDL.Record({
+    'status' : AssetStatus,
+    'registry_reference' : IDL.Opt(IDL.Text),
+    'title' : IDL.Text,
+    'asset_type' : IDL.Text,
+    'external_reference' : IDL.Opt(IDL.Text),
+    'description' : IDL.Text,
+    'created_at' : IDL.Int,
+    'metadata_uri' : IDL.Opt(IDL.Text),
+    'project_id' : IDL.Text,
+    'asset_id' : IDL.Text,
+  });
+  const AssetResult = IDL.Variant({ 'ok' : Asset, 'err' : IDL.Text });
+  const RiskLevel = IDL.Variant({
+    'Low' : IDL.Null,
+    'High' : IDL.Null,
+    'Medium' : IDL.Null,
+  });
+  const GeramCertificate = IDL.Record({
+    'qr_reference' : IDL.Opt(IDL.Text),
+    'issuer_id' : IDL.Text,
+    'annual_return_bps' : IDL.Opt(IDL.Nat),
+    'physical_certificate_hash' : IDL.Opt(IDL.Text),
+    'token_id' : IDL.Nat,
+    'face_value' : IDL.Nat,
+    'initial_holder' : IDL.Principal,
+    'currency' : IDL.Text,
+    'risk_level' : RiskLevel,
+    'project_id' : IDL.Text,
+    'certificate_id' : IDL.Text,
+    'issue_timestamp' : IDL.Int,
+    'maturity_timestamp' : IDL.Int,
+    'base_value' : IDL.Nat,
+    'physical_certificate_available' : IDL.Bool,
+  });
+  const CertificateResult = IDL.Variant({
+    'ok' : GeramCertificate,
+    'err' : IDL.Text,
+  });
+  const EnergyVerificationStatus = IDL.Variant({
+    'Draft' : IDL.Null,
+    'Rejected' : IDL.Null,
+    'Verified' : IDL.Null,
+    'Expired' : IDL.Null,
+    'Pending' : IDL.Null,
+  });
+  const EnergyVerification = IDL.Record({
+    'status' : EnergyVerificationStatus,
+    'heater_model' : IDL.Opt(IDL.Text),
+    'measurement_period_start' : IDL.Int,
+    'energy_saved_m3' : IDL.Nat,
+    'verification_method' : IDL.Text,
+    'baseline_energy_m3' : IDL.Nat,
+    'energy_saved_percent' : IDL.Nat,
+    'verifier_id' : IDL.Text,
+    'verification_reference' : IDL.Opt(IDL.Text),
+    'project_id' : IDL.Text,
+    'certificate_id' : IDL.Opt(IDL.Text),
+    'asset_id' : IDL.Text,
+    'heater_id' : IDL.Opt(IDL.Text),
+    'measurement_period_end' : IDL.Int,
+    'measured_energy_m3' : IDL.Nat,
+    'verification_timestamp' : IDL.Int,
+    'verification_id' : IDL.Text,
+  });
+  const EnergyVerificationResult = IDL.Variant({
+    'ok' : EnergyVerification,
+    'err' : IDL.Text,
+  });
+  const FundAsset = IDL.Record({
+    'active' : IDL.Bool,
+    'asset_type' : IDL.Text,
+    'token_id' : IDL.Opt(IDL.Nat),
+    'risk_level' : RiskLevel,
+    'quantity' : IDL.Nat,
+    'valuation_timestamp' : IDL.Int,
+    'project_id' : IDL.Opt(IDL.Text),
+    'certificate_id' : IDL.Opt(IDL.Text),
+    'asset_id' : IDL.Text,
+    'current_value' : IDL.Nat,
+    'acquisition_value' : IDL.Nat,
+    'fund_id' : IDL.Text,
+  });
+  const FundAssetResult = IDL.Variant({ 'ok' : FundAsset, 'err' : IDL.Text });
+  const FundPosition = IDL.Record({
+    'updated_at' : IDL.Int,
+    'active' : IDL.Bool,
+    'owner' : IDL.Principal,
+    'deposited_value' : IDL.Nat,
+    'created_at' : IDL.Int,
+    'share_units' : IDL.Nat,
+    'asset_count' : IDL.Nat,
+    'current_value' : IDL.Nat,
+    'fund_id' : IDL.Text,
+    'position_id' : IDL.Text,
+  });
+  const FundPositionResult = IDL.Variant({
+    'ok' : FundPosition,
+    'err' : IDL.Text,
+  });
+  const FundStatus = IDL.Variant({
+    'Paused' : IDL.Null,
+    'Closed' : IDL.Null,
+    'Active' : IDL.Null,
+    'Matured' : IDL.Null,
+    'Draft' : IDL.Null,
+  });
+  const FundType = IDL.Variant({
+    'Production' : IDL.Null,
+    'Energy' : IDL.Null,
+    'MultiSector' : IDL.Null,
+    'Infrastructure' : IDL.Null,
+    'Logistics' : IDL.Null,
+    'Tourism' : IDL.Null,
+    'Housing' : IDL.Null,
+    'Other' : IDL.Null,
+  });
+  const FundRiskParameters = IDL.Record({
+    'min_liquidity_bps' : IDL.Nat,
+    'max_asset_weight_bps' : IDL.Nat,
+    'max_single_project_weight_bps' : IDL.Nat,
+    'max_risk_level' : RiskLevel,
+    'max_drawdown_bps' : IDL.Nat,
+  });
+  const FundStrategy = IDL.Variant({
+    'MultiStrategy' : IDL.Null,
+    'Hold' : IDL.Null,
+    'Collateral' : IDL.Null,
+    'Trade' : IDL.Null,
+    'Income' : IDL.Null,
+    'Liquidity' : IDL.Null,
+  });
+  const AIModelReference = IDL.Record({
+    'model_version' : IDL.Text,
+    'provider' : IDL.Opt(IDL.Text),
+    'enabled' : IDL.Bool,
+    'model_id' : IDL.Text,
+    'endpoint_reference' : IDL.Opt(IDL.Text),
+  });
+  const AIStrategyStatus = IDL.Variant({
+    'Disabled' : IDL.Null,
+    'Advisory' : IDL.Null,
+    'Automated' : IDL.Null,
+    'Assisted' : IDL.Null,
+  });
+  const HamiFund = IDL.Record({
+    'status' : FundStatus,
+    'fund_type' : FundType,
+    'title' : IDL.Text,
+    'risk_parameters' : FundRiskParameters,
+    'decentralized' : IDL.Bool,
+    'base_currency' : IDL.Text,
+    'strategy' : FundStrategy,
+    'name' : IDL.Text,
+    'allowed_geram' : IDL.Bool,
+    'description' : IDL.Text,
+    'created_at' : IDL.Int,
+    'metadata_uri' : IDL.Opt(IDL.Text),
+    'minimum_position_value' : IDL.Opt(IDL.Nat),
+    'target_value' : IDL.Nat,
+    'allowed_tokens' : IDL.Vec(IDL.Text),
+    'ai_model' : IDL.Opt(AIModelReference),
+    'manager_id' : IDL.Text,
+    'activation_timestamp' : IDL.Opt(IDL.Int),
+    'maturity_timestamp' : IDL.Opt(IDL.Int),
+    'ai_status' : AIStrategyStatus,
+    'smart_contract_reference' : IDL.Opt(IDL.Text),
+    'fund_id' : IDL.Text,
+  });
+  const HamiFundResult = IDL.Variant({ 'ok' : HamiFund, 'err' : IDL.Text });
+  const MarketSnapshot = IDL.Record({
+    'supply_level' : IDL.Opt(IDL.Nat),
+    'annual_return_bps' : IDL.Opt(IDL.Nat),
+    'indicative_value' : IDL.Nat,
+    'valuation_reference' : IDL.Opt(IDL.Text),
+    'demand_level' : IDL.Opt(IDL.Nat),
+    'risk_level' : RiskLevel,
+    'valuation_timestamp' : IDL.Int,
+    'certificate_id' : IDL.Text,
+    'maturity_timestamp' : IDL.Int,
+    'base_value' : IDL.Nat,
+  });
+  const MarketSnapshotResult = IDL.Variant({
+    'ok' : MarketSnapshot,
+    'err' : IDL.Text,
+  });
+  const ProjectStatus = IDL.Variant({
+    'Active' : IDL.Null,
+    'Matured' : IDL.Null,
+    'Approved' : IDL.Null,
+    'Suspended' : IDL.Null,
+    'Draft' : IDL.Null,
+    'Completed' : IDL.Null,
+  });
+  const AssetReference = IDL.Record({
+    'registry_reference' : IDL.Opt(IDL.Text),
+    'asset_type' : IDL.Text,
+    'description' : IDL.Text,
+    'asset_id' : IDL.Text,
+  });
+  const Valuation = IDL.Record({
+    'expert_reference' : IDL.Opt(IDL.Text),
+    'valuation_date' : IDL.Int,
+    'valuation_unit' : IDL.Text,
+    'methodology' : IDL.Opt(IDL.Text),
+    'base_value' : IDL.Nat,
+  });
+  const FinancialTerms = IDL.Record({
+    'annual_return_bps' : IDL.Opt(IDL.Nat),
+    'face_value' : IDL.Nat,
+    'currency' : IDL.Text,
+    'maturity_timestamp' : IDL.Int,
+    'liquidity_guaranteed' : IDL.Bool,
+  });
+  const ProjectType = IDL.Variant({
+    'Production' : IDL.Null,
+    'Energy' : IDL.Null,
+    'Infrastructure' : IDL.Null,
+    'Logistics' : IDL.Null,
+    'Housing' : IDL.Null,
+    'Other' : IDL.Null,
+  });
+  const Project = IDL.Record({
+    'status' : ProjectStatus,
+    'title' : IDL.Text,
+    'issuer_id' : IDL.Text,
+    'asset' : AssetReference,
+    'description' : IDL.Text,
+    'valuation' : Valuation,
+    'financial_terms' : FinancialTerms,
+    'risk_level' : RiskLevel,
+    'project_id' : IDL.Text,
+    'project_type' : ProjectType,
+  });
+  const ProjectResult = IDL.Variant({ 'ok' : Project, 'err' : IDL.Text });
+  const FundTransactionType = IDL.Variant({
+    'Fee' : IDL.Null,
+    'Deposit' : IDL.Null,
+    'Rebalance' : IDL.Null,
+    'AssetSell' : IDL.Null,
+    'Withdrawal' : IDL.Null,
+    'AssetAcquire' : IDL.Null,
+    'Distribution' : IDL.Null,
+    'Adjustment' : IDL.Null,
+  });
+  const FundTransaction = IDL.Record({
+    'transaction_id' : IDL.Text,
+    'transaction_type' : FundTransactionType,
+    'token_id' : IDL.Opt(IDL.Nat),
+    'value' : IDL.Nat,
+    'reference' : IDL.Opt(IDL.Text),
+    'timestamp' : IDL.Int,
+    'actor_principal' : IDL.Principal,
+    'ai_generated' : IDL.Bool,
+    'certificate_id' : IDL.Opt(IDL.Text),
+    'asset_id' : IDL.Opt(IDL.Text),
+    'fund_id' : IDL.Text,
+    'position_id' : IDL.Opt(IDL.Text),
+  });
   const Account = IDL.Record({
     'owner' : IDL.Principal,
     'subaccount' : IDL.Opt(IDL.Vec(IDL.Nat8)),
@@ -61,7 +326,55 @@ export const idlFactory = ({ IDL }) => {
     'TooOld' : IDL.Null,
   });
   const TransferResult = IDL.Variant({ 'Ok' : IDL.Nat, 'Err' : TransferError });
+  const FundTransactionResult = IDL.Variant({
+    'ok' : FundTransaction,
+    'err' : IDL.Text,
+  });
+  const ValidationResult = IDL.Variant({ 'ok' : IDL.Text, 'err' : IDL.Text });
   const GERAM = IDL.Service({
+    'create_asset' : IDL.Func([Asset], [AssetResult], []),
+    'create_certificate' : IDL.Func(
+        [GeramCertificate],
+        [CertificateResult],
+        [],
+      ),
+    'create_energy_verification' : IDL.Func(
+        [EnergyVerification],
+        [EnergyVerificationResult],
+        [],
+      ),
+    'create_fund_asset' : IDL.Func([FundAsset], [FundAssetResult], []),
+    'create_fund_position' : IDL.Func([FundPosition], [FundPositionResult], []),
+    'create_hami_fund' : IDL.Func([HamiFund], [HamiFundResult], []),
+    'create_market_snapshot' : IDL.Func(
+        [MarketSnapshot],
+        [MarketSnapshotResult],
+        [],
+      ),
+    'create_project' : IDL.Func([Project], [ProjectResult], []),
+    'get_asset' : IDL.Func([IDL.Text], [IDL.Opt(Asset)], ['query']),
+    'get_certificate' : IDL.Func(
+        [IDL.Text],
+        [IDL.Opt(GeramCertificate)],
+        ['query'],
+      ),
+    'get_energy_verification' : IDL.Func(
+        [IDL.Text],
+        [IDL.Opt(EnergyVerification)],
+        ['query'],
+      ),
+    'get_fund_asset' : IDL.Func([IDL.Text], [IDL.Opt(FundAsset)], ['query']),
+    'get_fund_position' : IDL.Func(
+        [IDL.Text],
+        [IDL.Opt(FundPosition)],
+        ['query'],
+      ),
+    'get_fund_transaction' : IDL.Func(
+        [IDL.Text],
+        [IDL.Opt(FundTransaction)],
+        ['query'],
+      ),
+    'get_hami_fund' : IDL.Func([IDL.Text], [IDL.Opt(HamiFund)], ['query']),
     'get_icrc85_stats' : IDL.Func(
         [],
         [
@@ -73,6 +386,12 @@ export const idlFactory = ({ IDL }) => {
         ],
         ['query'],
       ),
+    'get_market_snapshot' : IDL.Func(
+        [IDL.Text],
+        [IDL.Opt(MarketSnapshot)],
+        ['query'],
+      ),
+    'get_project' : IDL.Func([IDL.Text], [IDL.Opt(Project)], ['query']),
     'icrc7_atomic_batch_transfers' : IDL.Func(
         [],
         [IDL.Opt(IDL.Bool)],
@@ -127,6 +446,58 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'icrc7_tx_window' : IDL.Func([], [IDL.Opt(IDL.Nat)], ['query']),
+    'list_assets' : IDL.Func([], [IDL.Vec(Asset)], ['query']),
+    'list_certificates' : IDL.Func([], [IDL.Vec(GeramCertificate)], ['query']),
+    'list_energy_verifications' : IDL.Func(
+        [],
+        [IDL.Vec(EnergyVerification)],
+        ['query'],
+      ),
+    'list_fund_assets' : IDL.Func(
+        [IDL.Opt(IDL.Text)],
+        [IDL.Vec(FundAsset)],
+        ['query'],
+      ),
+    'list_fund_positions' : IDL.Func(
+        [IDL.Opt(IDL.Text)],
+        [IDL.Vec(FundPosition)],
+        ['query'],
+      ),
+    'list_fund_transactions' : IDL.Func(
+        [IDL.Opt(IDL.Text)],
+        [IDL.Vec(FundTransaction)],
+        ['query'],
+      ),
+    'list_hami_funds' : IDL.Func([], [IDL.Vec(HamiFund)], ['query']),
+    'list_market_snapshots' : IDL.Func(
+        [],
+        [IDL.Vec(MarketSnapshot)],
+        ['query'],
+      ),
+    'list_projects' : IDL.Func([], [IDL.Vec(Project)], ['query']),
+    'record_fund_transaction' : IDL.Func(
+        [FundTransaction],
+        [FundTransactionResult],
+        [],
+      ),
+    'validate_certificate' : IDL.Func(
+        [IDL.Text],
+        [ValidationResult],
+        ['query'],
+      ),
+    'validate_fund_asset' : IDL.Func([IDL.Text], [ValidationResult], ['query']),
+    'validate_fund_position' : IDL.Func(
+        [IDL.Text],
+        [ValidationResult],
+        ['query'],
+      ),
+    'validate_fund_transaction' : IDL.Func(
+        [IDL.Text],
+        [ValidationResult],
+        ['query'],
+      ),
+    'validate_hami_fund' : IDL.Func([IDL.Text], [ValidationResult], ['query']),
+    'validate_project' : IDL.Func([IDL.Text], [ValidationResult], ['query']),
   });
   
   return GERAM;

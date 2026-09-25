@@ -2,6 +2,7 @@ import Array "mo:base/Array";
 import ClassPlus "mo:class-plus";
 import ICRC7 "mo:icrc7-mo";
 import Principal "mo:base/Principal";
+import Time "mo:base/Time";
 
 import ICRC7Mixin "mo:icrc7-mo/mixin";
 import Protocol "./Protocol";
@@ -101,6 +102,45 @@ shared ({ caller = _owner }) persistent actor class GERAM() = this {
     #err : Text;
   };
 
+  // ============================================================
+  // GERAM-P07.8 — Certificate Issuance Types
+  // ============================================================
+
+  public type IssueCertificateRequest = {
+    certificate_id : Text;
+    project_id : Text;
+    issuer_id : Text;
+    initial_holder : Principal;
+
+    maturity_timestamp : Int;
+    face_value : Nat;
+    base_value : Nat;
+    currency : Text;
+
+    annual_return_bps : ?Nat;
+    risk_level : RiskLevel;
+
+    physical_certificate_available : Bool;
+    physical_certificate_hash : ?Text;
+    qr_reference : ?Text;
+
+    asset_id : ?Text;
+    asset_type : ?Text;
+    title : ?Text;
+    description : ?Text;
+    metadata_uri : ?Text;
+    external_reference : ?Text;
+  };
+
+  public type IssueCertificateResult = {
+    #ok : {
+      certificate : GeramCertificate;
+      token_id : Nat;
+      transaction_id : Nat;
+    };
+    #err : Text;
+  };
+
   public type EnergyVerificationResult = {
     #ok : EnergyVerification;
     #err : Text;
@@ -156,6 +196,33 @@ shared ({ caller = _owner }) persistent actor class GERAM() = this {
   stable var assets : [Asset] = [];
   stable var energyVerifications : [EnergyVerification] = [];
   stable var certificates : [GeramCertificate] = [];
+  // ============================================================
+  // GERAM-P07.8 — ICRC-7 Token ID Allocator
+  // ============================================================
+
+  // GERAM token namespace starts above the experimental/test token range.
+  // Certificate ID and ICRC-7 Token ID remain separate identifiers.
+  stable var nextGeramTokenId : Nat = 1_000_001;
+
+  // Finds the first unused Token ID in the GERAM namespace.
+  // ICRC-7 remains the source of truth for actual NFT existence.
+  private func findAvailableGeramTokenId() : Nat {
+    var candidate = nextGeramTokenId;
+
+    label search loop {
+      switch (icrc7().get_nft(candidate)) {
+        case (null) {
+          return candidate;
+        };
+        case (?_) {
+          candidate += 1;
+        };
+      };
+    };
+
+    candidate
+  };
+
   stable var marketSnapshots : [MarketSnapshot] = [];
 
   // ============================================================
@@ -412,7 +479,355 @@ for (project in projects.vals()) {
   // P04-05 — Get Certificate
   // ============================================================
 
-  public query func get_certificate(
+  // ============================================================
+  // GERAM-P07.8 — Issue Certificate + ICRC-7 Mint
+  // ============================================================
+
+  public shared ({ caller }) func issue_certificate(
+    request : IssueCertificateRequest
+  ) : async IssueCertificateResult {
+
+    // ------------------------------------------------------------
+    // 1. Authorization
+    // ------------------------------------------------------------
+
+    if (not isOwner(caller)) {
+      return #err("Unauthorized: only GERAM owner can issue a certificate");
+    };
+
+    // ------------------------------------------------------------
+    // 2. Basic request validation
+    // ------------------------------------------------------------
+
+    if (request.certificate_id == "") {
+      return #err("Certificate issuance failed: empty certificate_id");
+    };
+
+    if (request.project_id == "") {
+      return #err("Certificate issuance failed: empty project_id");
+    };
+
+    if (request.issuer_id == "") {
+      return #err("Certificate issuance failed: empty issuer_id");
+    };
+
+    if (request.face_value == 0) {
+      return #err("Certificate issuance failed: face_value is zero");
+    };
+
+    if (request.base_value == 0) {
+      return #err("Certificate issuance failed: base_value is zero");
+    };
+
+    if (request.currency == "") {
+      return #err("Certificate issuance failed: empty currency");
+    };
+
+    // ------------------------------------------------------------
+    // 3. Validate referenced Project
+    // ------------------------------------------------------------
+
+    switch (
+      Array.find<Project>(
+        projects,
+        func(p : Project) : Bool {
+          p.project_id == request.project_id
+        }
+      )
+    ) {
+      case null {
+        return #err(
+          "Certificate issuance failed: referenced project not found"
+        );
+      };
+
+      case (?_) {};
+    };
+
+    // ------------------------------------------------------------
+    // 4. Validate optional Asset reference
+    // ------------------------------------------------------------
+
+    switch (request.asset_id) {
+      case null {};
+      case (?assetId) {
+
+        if (assetId == "") {
+          return #err(
+            "Certificate issuance failed: asset_id is empty"
+          );
+        };
+
+        switch (
+          Array.find<Asset>(
+            assets,
+            func(a : Asset) : Bool {
+              a.asset_id == assetId
+            }
+          )
+        ) {
+          case null {
+            return #err(
+              "Certificate issuance failed: referenced asset not found"
+            );
+          };
+
+          case (?asset) {
+            if (asset.project_id != request.project_id) {
+              return #err(
+                "Certificate issuance failed: asset does not belong to referenced project"
+              );
+            };
+          };
+        };
+      };
+    };
+
+    // ------------------------------------------------------------
+    // 5. Certificate uniqueness
+    // ------------------------------------------------------------
+
+    switch (
+      Array.find<GeramCertificate>(
+        certificates,
+        func(c : GeramCertificate) : Bool {
+          c.certificate_id == request.certificate_id
+        }
+      )
+    ) {
+      case (?_) {
+        return #err("Certificate issuance failed: certificate already exists");
+      };
+
+      case null {};
+    };
+
+    // ------------------------------------------------------------
+    // 6. Issue timestamp
+    // ------------------------------------------------------------
+
+    let issueTimestamp : Int = Time.now();
+
+    if (request.maturity_timestamp <= issueTimestamp) {
+      return #err(
+        "Certificate issuance failed: maturity must be after issue timestamp"
+      );
+    };
+
+    // ------------------------------------------------------------
+    // 7. Allocate an unused GERAM Token ID
+    // ------------------------------------------------------------
+
+    let tokenId : Nat = findAvailableGeramTokenId();
+
+    // ------------------------------------------------------------
+    // 8. Build generic GERAM NFT metadata
+    // ------------------------------------------------------------
+
+    let metadata : ICRC7.NFTInput = #Map([
+      ("certificate_id", #Text(request.certificate_id)),
+      ("token_id", #Nat(tokenId)),
+      ("project_id", #Text(request.project_id)),
+      ("issuer_id", #Text(request.issuer_id)),
+      ("certificate_type", #Text("GERAM")),
+      ("face_value", #Nat(request.face_value)),
+      ("base_value", #Nat(request.base_value)),
+      ("currency", #Text(request.currency)),
+      ("maturity_timestamp", #Int(request.maturity_timestamp)),
+      ("issue_timestamp", #Int(issueTimestamp)),
+      ("annual_return_bps", #Option(
+        switch (request.annual_return_bps) {
+          case (?value) { ?#Nat(value) };
+          case null { null };
+        }
+      )),
+      ("risk_level", #Text(
+        switch (request.risk_level) {
+          case (#Low) { "Low" };
+          case (#Medium) { "Medium" };
+          case (#High) { "High" };
+        }
+      )),
+      ("physical_certificate_available", #Bool(
+        request.physical_certificate_available
+      )),
+      ("physical_certificate_hash", #Option(
+        switch (request.physical_certificate_hash) {
+          case (?value) { ?#Text(value) };
+          case null { null };
+        }
+      )),
+      ("qr_reference", #Option(
+        switch (request.qr_reference) {
+          case (?value) { ?#Text(value) };
+          case null { null };
+        }
+      )),
+      ("GeramID", #Text(
+        switch (request.qr_reference) {
+          case (?value) { value };
+          case null { request.certificate_id };
+        }
+      )),
+      ("asset_id", #Option(
+        switch (request.asset_id) {
+          case (?value) { ?#Text(value) };
+          case null { null };
+        }
+      )),
+      ("asset_type", #Option(
+        switch (request.asset_type) {
+          case (?value) { ?#Text(value) };
+          case null { null };
+        }
+      )),
+      ("title", #Option(
+        switch (request.title) {
+          case (?value) { ?#Text(value) };
+          case null { null };
+        }
+      )),
+      ("description", #Option(
+        switch (request.description) {
+          case (?value) { ?#Text(value) };
+          case null { null };
+        }
+      )),
+      ("metadata_uri", #Option(
+        switch (request.metadata_uri) {
+          case (?value) { ?#Text(value) };
+          case null { null };
+        }
+      )),
+      ("external_reference", #Option(
+        switch (request.external_reference) {
+          case (?value) { ?#Text(value) };
+          case null { null };
+        }
+      ))
+    ]);
+
+    // ------------------------------------------------------------
+    // 9. Mint through ICRC-7
+    // ------------------------------------------------------------
+
+    let targetAccount : ICRC7.Account = {
+      owner = request.initial_holder;
+      subaccount = null;
+    };
+
+    let mintRequest : ICRC7.SetNFTRequest = [{
+      token_id = tokenId;
+      metadata = metadata;
+      owner = ?targetAccount;
+      override = false;
+      memo = null;
+      created_at_time = null;
+    }];
+
+    let mintResult =
+      icrc7().set_nfts<system>(
+        _owner,
+        mintRequest,
+        true
+      );
+
+    // ------------------------------------------------------------
+    // 10. Confirm successful Mint and obtain transaction ID
+    // ------------------------------------------------------------
+
+    let transactionId : Nat = switch (mintResult) {
+
+      case (#err(errorMessage)) {
+        return #err(
+          "Certificate issuance failed: ICRC-7 mint call failed: "
+          # errorMessage
+        );
+      };
+
+      case (#ok(results)) {
+
+        if (results.size() != 1) {
+          return #err(
+            "Certificate issuance failed: unexpected ICRC-7 result count"
+          );
+        };
+
+        switch (results[0]) {
+
+          case (#Ok(?txId)) {
+            txId;
+          };
+
+          case (#Ok(null)) {
+            return #err(
+              "Certificate issuance failed: ICRC-7 returned no transaction ID"
+            );
+          };
+
+          case (#Err(_)) {
+            return #err(
+              "Certificate issuance failed: ICRC-7 rejected the mint request"
+            );
+          };
+
+          case (#GenericError(error)) {
+            return #err(
+              "Certificate issuance failed: ICRC-7 generic error "
+              # error.message
+            );
+          };
+        };
+      };
+    };
+
+    // ------------------------------------------------------------
+    // 11. Create Certificate Registry record
+    // ------------------------------------------------------------
+
+    let certificate : GeramCertificate = {
+      certificate_id = request.certificate_id;
+      token_id = tokenId;
+      project_id = request.project_id;
+      issuer_id = request.issuer_id;
+      initial_holder = request.initial_holder;
+      issue_timestamp = issueTimestamp;
+      maturity_timestamp = request.maturity_timestamp;
+      face_value = request.face_value;
+      base_value = request.base_value;
+      currency = request.currency;
+      annual_return_bps = request.annual_return_bps;
+      risk_level = request.risk_level;
+      physical_certificate_available =
+        request.physical_certificate_available;
+      physical_certificate_hash =
+        request.physical_certificate_hash;
+      qr_reference = request.qr_reference;
+    };
+
+    certificates := Array.append<GeramCertificate>(
+      certificates,
+      [certificate]
+    );
+
+    // ------------------------------------------------------------
+    // 12. Advance allocator only after successful Mint + Registry
+    // ------------------------------------------------------------
+
+    nextGeramTokenId := tokenId + 1;
+
+    // ------------------------------------------------------------
+    // 13. Return issued Certificate
+    // ------------------------------------------------------------
+
+    #ok({
+      certificate = certificate;
+      token_id = tokenId;
+      transaction_id = transactionId;
+    });
+  };
+
+ public query func get_certificate(
     certificate_id : Text
   ) : async ?GeramCertificate {
 

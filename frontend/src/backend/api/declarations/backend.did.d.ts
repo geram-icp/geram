@@ -10,14 +10,185 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface AIModelReference {
+  'model_version' : string,
+  'provider' : [] | [string],
+  'enabled' : boolean,
+  'model_id' : string,
+  'endpoint_reference' : [] | [string],
+}
+export type AIStrategyStatus = { 'Disabled' : null } |
+  { 'Advisory' : null } |
+  { 'Automated' : null } |
+  { 'Assisted' : null };
 export interface Account {
   'owner' : Principal,
   'subaccount' : [] | [Uint8Array],
 }
+export interface Asset {
+  'status' : AssetStatus,
+  'registry_reference' : [] | [string],
+  'title' : string,
+  'asset_type' : string,
+  'external_reference' : [] | [string],
+  'description' : string,
+  'created_at' : bigint,
+  'metadata_uri' : [] | [string],
+  'project_id' : string,
+  'asset_id' : string,
+}
+export interface AssetReference {
+  'registry_reference' : [] | [string],
+  'asset_type' : string,
+  'description' : string,
+  'asset_id' : string,
+}
+export type AssetResult = { 'ok' : Asset } |
+  { 'err' : string };
+export type AssetStatus = { 'Inactive' : null } |
+  { 'Active' : null } |
+  { 'Draft' : null } |
+  { 'Retired' : null };
 export type BalanceOfRequest = Array<Account>;
 export type BalanceOfResponse = Array<bigint>;
+export type CertificateResult = { 'ok' : GeramCertificate } |
+  { 'err' : string };
 export type CollectionMetadataResponse = Array<[string, Value]>;
+export interface EnergyVerification {
+  'status' : EnergyVerificationStatus,
+  'heater_model' : [] | [string],
+  'measurement_period_start' : bigint,
+  'energy_saved_m3' : bigint,
+  'verification_method' : string,
+  'baseline_energy_m3' : bigint,
+  'energy_saved_percent' : bigint,
+  'verifier_id' : string,
+  'verification_reference' : [] | [string],
+  'project_id' : string,
+  'certificate_id' : [] | [string],
+  'asset_id' : string,
+  'heater_id' : [] | [string],
+  'measurement_period_end' : bigint,
+  'measured_energy_m3' : bigint,
+  'verification_timestamp' : bigint,
+  'verification_id' : string,
+}
+export type EnergyVerificationResult = { 'ok' : EnergyVerification } |
+  { 'err' : string };
+export type EnergyVerificationStatus = { 'Draft' : null } |
+  { 'Rejected' : null } |
+  { 'Verified' : null } |
+  { 'Expired' : null } |
+  { 'Pending' : null };
+export interface FinancialTerms {
+  'annual_return_bps' : [] | [bigint],
+  'face_value' : bigint,
+  'currency' : string,
+  'maturity_timestamp' : bigint,
+  'liquidity_guaranteed' : boolean,
+}
+export interface FundAsset {
+  'active' : boolean,
+  'asset_type' : string,
+  'token_id' : [] | [bigint],
+  'risk_level' : RiskLevel,
+  'quantity' : bigint,
+  'valuation_timestamp' : bigint,
+  'project_id' : [] | [string],
+  'certificate_id' : [] | [string],
+  'asset_id' : string,
+  'current_value' : bigint,
+  'acquisition_value' : bigint,
+  'fund_id' : string,
+}
+export type FundAssetResult = { 'ok' : FundAsset } |
+  { 'err' : string };
+export interface FundPosition {
+  'updated_at' : bigint,
+  'active' : boolean,
+  'owner' : Principal,
+  'deposited_value' : bigint,
+  'created_at' : bigint,
+  'share_units' : bigint,
+  'asset_count' : bigint,
+  'current_value' : bigint,
+  'fund_id' : string,
+  'position_id' : string,
+}
+export type FundPositionResult = { 'ok' : FundPosition } |
+  { 'err' : string };
+export interface FundRiskParameters {
+  'min_liquidity_bps' : bigint,
+  'max_asset_weight_bps' : bigint,
+  'max_single_project_weight_bps' : bigint,
+  'max_risk_level' : RiskLevel,
+  'max_drawdown_bps' : bigint,
+}
+export type FundStatus = { 'Paused' : null } |
+  { 'Closed' : null } |
+  { 'Active' : null } |
+  { 'Matured' : null } |
+  { 'Draft' : null };
+export type FundStrategy = { 'MultiStrategy' : null } |
+  { 'Hold' : null } |
+  { 'Collateral' : null } |
+  { 'Trade' : null } |
+  { 'Income' : null } |
+  { 'Liquidity' : null };
+export interface FundTransaction {
+  'transaction_id' : string,
+  'transaction_type' : FundTransactionType,
+  'token_id' : [] | [bigint],
+  'value' : bigint,
+  'reference' : [] | [string],
+  'timestamp' : bigint,
+  'actor_principal' : Principal,
+  'ai_generated' : boolean,
+  'certificate_id' : [] | [string],
+  'asset_id' : [] | [string],
+  'fund_id' : string,
+  'position_id' : [] | [string],
+}
+export type FundTransactionResult = { 'ok' : FundTransaction } |
+  { 'err' : string };
+export type FundTransactionType = { 'Fee' : null } |
+  { 'Deposit' : null } |
+  { 'Rebalance' : null } |
+  { 'AssetSell' : null } |
+  { 'Withdrawal' : null } |
+  { 'AssetAcquire' : null } |
+  { 'Distribution' : null } |
+  { 'Adjustment' : null };
+export type FundType = { 'Production' : null } |
+  { 'Energy' : null } |
+  { 'MultiSector' : null } |
+  { 'Infrastructure' : null } |
+  { 'Logistics' : null } |
+  { 'Tourism' : null } |
+  { 'Housing' : null } |
+  { 'Other' : null };
 export interface GERAM {
+  'create_asset' : ActorMethod<[Asset], AssetResult>,
+  'create_certificate' : ActorMethod<[GeramCertificate], CertificateResult>,
+  'create_energy_verification' : ActorMethod<
+    [EnergyVerification],
+    EnergyVerificationResult
+  >,
+  'create_fund_asset' : ActorMethod<[FundAsset], FundAssetResult>,
+  'create_fund_position' : ActorMethod<[FundPosition], FundPositionResult>,
+  'create_hami_fund' : ActorMethod<[HamiFund], HamiFundResult>,
+  'create_market_snapshot' : ActorMethod<
+    [MarketSnapshot],
+    MarketSnapshotResult
+  >,
+  'create_project' : ActorMethod<[Project], ProjectResult>,
+  'get_asset' : ActorMethod<[string], [] | [Asset]>,
+  'get_certificate' : ActorMethod<[string], [] | [GeramCertificate]>,
+  'get_energy_verification' : ActorMethod<[string], [] | [EnergyVerification]>,
+  'get_fund_asset' : ActorMethod<[string], [] | [FundAsset]>,
+  'get_fund_position' : ActorMethod<[string], [] | [FundPosition]>,
+  'get_fund_transaction' : ActorMethod<[string], [] | [FundTransaction]>,
+  'get_hami_fund' : ActorMethod<[string], [] | [HamiFund]>,
   'get_icrc85_stats' : ActorMethod<
     [],
     {
@@ -26,6 +197,8 @@ export interface GERAM {
       'lastActionReported' : [] | [bigint],
     }
   >,
+  'get_market_snapshot' : ActorMethod<[string], [] | [MarketSnapshot]>,
+  'get_project' : ActorMethod<[string], [] | [Project]>,
   'icrc7_atomic_batch_transfers' : ActorMethod<[], [] | [boolean]>,
   'icrc7_balance_of' : ActorMethod<[BalanceOfRequest], BalanceOfResponse>,
   'icrc7_collection_metadata' : ActorMethod<[], CollectionMetadataResponse>,
@@ -57,11 +230,119 @@ export interface GERAM {
     Array<[] | [TransferResult]>
   >,
   'icrc7_tx_window' : ActorMethod<[], [] | [bigint]>,
+  'list_assets' : ActorMethod<[], Array<Asset>>,
+  'list_certificates' : ActorMethod<[], Array<GeramCertificate>>,
+  'list_energy_verifications' : ActorMethod<[], Array<EnergyVerification>>,
+  'list_fund_assets' : ActorMethod<[[] | [string]], Array<FundAsset>>,
+  'list_fund_positions' : ActorMethod<[[] | [string]], Array<FundPosition>>,
+  'list_fund_transactions' : ActorMethod<
+    [[] | [string]],
+    Array<FundTransaction>
+  >,
+  'list_hami_funds' : ActorMethod<[], Array<HamiFund>>,
+  'list_market_snapshots' : ActorMethod<[], Array<MarketSnapshot>>,
+  'list_projects' : ActorMethod<[], Array<Project>>,
+  'record_fund_transaction' : ActorMethod<
+    [FundTransaction],
+    FundTransactionResult
+  >,
+  'validate_certificate' : ActorMethod<[string], ValidationResult>,
+  'validate_fund_asset' : ActorMethod<[string], ValidationResult>,
+  'validate_fund_position' : ActorMethod<[string], ValidationResult>,
+  'validate_fund_transaction' : ActorMethod<[string], ValidationResult>,
+  'validate_hami_fund' : ActorMethod<[string], ValidationResult>,
+  'validate_project' : ActorMethod<[string], ValidationResult>,
 }
+export interface GeramCertificate {
+  'qr_reference' : [] | [string],
+  'issuer_id' : string,
+  'annual_return_bps' : [] | [bigint],
+  'physical_certificate_hash' : [] | [string],
+  'token_id' : bigint,
+  'face_value' : bigint,
+  'initial_holder' : Principal,
+  'currency' : string,
+  'risk_level' : RiskLevel,
+  'project_id' : string,
+  'certificate_id' : string,
+  'issue_timestamp' : bigint,
+  'maturity_timestamp' : bigint,
+  'base_value' : bigint,
+  'physical_certificate_available' : boolean,
+}
+export interface HamiFund {
+  'status' : FundStatus,
+  'fund_type' : FundType,
+  'title' : string,
+  'risk_parameters' : FundRiskParameters,
+  'decentralized' : boolean,
+  'base_currency' : string,
+  'strategy' : FundStrategy,
+  'name' : string,
+  'allowed_geram' : boolean,
+  'description' : string,
+  'created_at' : bigint,
+  'metadata_uri' : [] | [string],
+  'minimum_position_value' : [] | [bigint],
+  'target_value' : bigint,
+  'allowed_tokens' : Array<string>,
+  'ai_model' : [] | [AIModelReference],
+  'manager_id' : string,
+  'activation_timestamp' : [] | [bigint],
+  'maturity_timestamp' : [] | [bigint],
+  'ai_status' : AIStrategyStatus,
+  'smart_contract_reference' : [] | [string],
+  'fund_id' : string,
+}
+export type HamiFundResult = { 'ok' : HamiFund } |
+  { 'err' : string };
 export type Map = Array<[string, Value]>;
+export interface MarketSnapshot {
+  'supply_level' : [] | [bigint],
+  'annual_return_bps' : [] | [bigint],
+  'indicative_value' : bigint,
+  'valuation_reference' : [] | [string],
+  'demand_level' : [] | [bigint],
+  'risk_level' : RiskLevel,
+  'valuation_timestamp' : bigint,
+  'certificate_id' : string,
+  'maturity_timestamp' : bigint,
+  'base_value' : bigint,
+}
+export type MarketSnapshotResult = { 'ok' : MarketSnapshot } |
+  { 'err' : string };
 export type Metadata = Array<[string, Value]>;
 export type OwnerOfRequest = Array<bigint>;
 export type OwnerOfResponse = Array<[] | [Account]>;
+export interface Project {
+  'status' : ProjectStatus,
+  'title' : string,
+  'issuer_id' : string,
+  'asset' : AssetReference,
+  'description' : string,
+  'valuation' : Valuation,
+  'financial_terms' : FinancialTerms,
+  'risk_level' : RiskLevel,
+  'project_id' : string,
+  'project_type' : ProjectType,
+}
+export type ProjectResult = { 'ok' : Project } |
+  { 'err' : string };
+export type ProjectStatus = { 'Active' : null } |
+  { 'Matured' : null } |
+  { 'Approved' : null } |
+  { 'Suspended' : null } |
+  { 'Draft' : null } |
+  { 'Completed' : null };
+export type ProjectType = { 'Production' : null } |
+  { 'Energy' : null } |
+  { 'Infrastructure' : null } |
+  { 'Logistics' : null } |
+  { 'Housing' : null } |
+  { 'Other' : null };
+export type RiskLevel = { 'Low' : null } |
+  { 'High' : null } |
+  { 'Medium' : null };
 export type SupportedStandardsResponse = Array<
   { 'url' : string, 'name' : string }
 >;
@@ -87,6 +368,15 @@ export type TransferError = {
   { 'TooOld' : null };
 export type TransferResult = { 'Ok' : bigint } |
   { 'Err' : TransferError };
+export type ValidationResult = { 'ok' : string } |
+  { 'err' : string };
+export interface Valuation {
+  'expert_reference' : [] | [string],
+  'valuation_date' : bigint,
+  'valuation_unit' : string,
+  'methodology' : [] | [string],
+  'base_value' : bigint,
+}
 export type Value = { 'Int' : bigint } |
   { 'Map' : Map } |
   { 'Nat' : bigint } |
