@@ -12,6 +12,7 @@ import IDValidator "./ID/Validator";
 import Identity "./Identity";
 import PrincipalBinding "./PrincipalBinding";
 import VerificationRef "./VerificationRef";
+import Wallet "./Wallet";
 import Account "./Account";
 
 shared ({ caller = _owner }) persistent actor class GERAM() = this {
@@ -72,6 +73,9 @@ shared ({ caller = _owner }) persistent actor class GERAM() = this {
   public type Identity = Identity.Identity;
   public type PrincipalBinding = PrincipalBinding.PrincipalBinding;
   public type VerificationRef = VerificationRef.VerificationRef;
+public type Wallet = Wallet.Wallet;
+public type WalletKind = Wallet.WalletKind;
+public type WalletStatus = Wallet.WalletStatus;
 public type Account = Account.Account;
   public type AccountKind = Account.AccountKind;
   public type AccountStatus = Account.AccountStatus;
@@ -211,11 +215,38 @@ public type Account = Account.Account;
   stable var identities : [Identity] = [];
   stable var principalBindings : [PrincipalBinding] = [];
   stable var verificationRefs : [VerificationRef] = [];
+
+stable var wallets : [Wallet] = [];
 stable var accounts : [Account] = [];
 
   // ==========================================================
   // GERAM-P05 ? Identity Foundation API
   // ==========================================================
+
+  public query func get_wallet(wallet_id : Text) : async ?Wallet {
+    switch (IDValidator.validateExpected(wallet_id, #Wallet)) {
+      case (#err(_)) { return null; };
+      case (#ok(_)) {};
+    };
+    for (wallet in wallets.vals()) {
+      if (wallet.wallet_id == wallet_id) { return ?wallet; };
+    };
+    null
+  };
+
+  public query func get_wallets_by_account(account_id : Text) : async [Wallet] {
+    switch (IDValidator.validateExpected(account_id, #Account)) {
+      case (#err(_)) { return []; };
+      case (#ok(_)) {};
+    };
+    var result : [Wallet] = [];
+    for (wallet in wallets.vals()) {
+      if (wallet.account_id == account_id) {
+        result := Array.append<Wallet>(result, [wallet]);
+      };
+    };
+    result
+  };
 
   public query func get_account(account_id : Text) : async ?Account {
     switch (IDValidator.validateExpected(account_id, #Account)) {
@@ -357,6 +388,599 @@ stable var accounts : [Account] = [];
     identities := Array.append<Identity>(identities, [identity]);
 
     #ok(identity)
+  };
+
+  public shared ({ caller }) func create_wallet(
+    wallet_id : Text,
+    account_id : Text,
+    kind : WalletKind,
+    metadata_ref : ?Text,
+    now : Int
+  ) : async Result.Result<Wallet> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Wallet creation is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(wallet_id, #Wallet)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Wallet ID; expected WLT namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    switch (IDValidator.validateExpected(account_id, #Account)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Account ID; expected ACC namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    for (wallet in wallets.vals()) {
+      if (wallet.wallet_id == wallet_id) {
+        return #err(
+          ErrorFactory.fromCode(
+            #Duplicate,
+            "Wallet already exists",
+            null
+          )
+        );
+      };
+    };
+
+    var account_found : ?Account = null;
+
+    for (account in accounts.vals()) {
+      if (account.account_id == account_id) {
+        account_found := ?account;
+      };
+    };
+
+    switch (account_found) {
+      case null {
+        return #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Account not found",
+            null
+          )
+        );
+      };
+
+      case (?account) {
+        switch (account.status) {
+          case (#Archived) {
+            return #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Archived Account cannot create a Wallet",
+                null
+              )
+            );
+          };
+          case (_) {};
+        };
+      };
+    };
+
+    let wallet : Wallet = {
+      wallet_id = wallet_id;
+      account_id = account_id;
+      kind = kind;
+      status = #Pending;
+      created_at = now;
+      updated_at = now;
+      metadata_ref = metadata_ref;
+    };
+
+    wallets := Array.append<Wallet>(wallets, [wallet]);
+    #ok(wallet)
+  };
+
+  public shared ({ caller }) func update_wallet(
+    wallet_id : Text,
+    kind : WalletKind,
+    metadata_ref : ?Text,
+    now : Int
+  ) : async Result.Result<Wallet> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Wallet update is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(wallet_id, #Wallet)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Wallet ID; expected WLT namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    var wallet_found : ?Wallet = null;
+
+    for (wallet in wallets.vals()) {
+      if (wallet.wallet_id == wallet_id) {
+        wallet_found := ?wallet;
+      };
+    };
+
+    switch (wallet_found) {
+      case null {
+        return #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Wallet not found",
+            null
+          )
+        );
+      };
+
+      case (?wallet) {
+        switch (wallet.status) {
+          case (#Closed) {
+            return #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Closed Wallet cannot be updated",
+                null
+              )
+            );
+          };
+
+          case (#Archived) {
+            return #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Archived Wallet cannot be updated",
+                null
+              )
+            );
+          };
+
+          case (_) {
+            let updated : Wallet = {
+              wallet_id = wallet.wallet_id;
+              account_id = wallet.account_id;
+              kind = kind;
+              status = wallet.status;
+              created_at = wallet.created_at;
+              updated_at = now;
+              metadata_ref = metadata_ref;
+            };
+
+            var next : [Wallet] = [];
+
+            for (item in wallets.vals()) {
+              if (item.wallet_id == wallet_id) {
+                next := Array.append<Wallet>(next, [updated]);
+              } else {
+                next := Array.append<Wallet>(next, [item]);
+              };
+            };
+
+            wallets := next;
+            #ok(updated)
+          };
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func activate_wallet(
+    wallet_id : Text,
+    now : Int
+  ) : async Result.Result<Wallet> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Wallet activation is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(wallet_id, #Wallet)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Wallet ID; expected WLT namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    var wallet_found : ?Wallet = null;
+
+    for (wallet in wallets.vals()) {
+      if (wallet.wallet_id == wallet_id) {
+        wallet_found := ?wallet;
+      };
+    };
+
+    switch (wallet_found) {
+      case null {
+        return #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Wallet not found",
+            null
+          )
+        );
+      };
+
+      case (?wallet) {
+        switch (wallet.status) {
+          case (#Pending) {
+            let updated : Wallet = {
+              wallet_id = wallet.wallet_id;
+              account_id = wallet.account_id;
+              kind = wallet.kind;
+              status = #Active;
+              created_at = wallet.created_at;
+              updated_at = now;
+              metadata_ref = wallet.metadata_ref;
+            };
+
+            var next : [Wallet] = [];
+            for (item in wallets.vals()) {
+              if (item.wallet_id == wallet_id) {
+                next := Array.append<Wallet>(next, [updated]);
+              } else {
+                next := Array.append<Wallet>(next, [item]);
+              };
+            };
+
+            wallets := next;
+            #ok(updated)
+          };
+
+          case (#Active) {
+            #ok(wallet)
+          };
+
+          case (_) {
+            #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Wallet cannot be activated from its current status",
+                null
+              )
+            )
+          };
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func suspend_wallet(
+    wallet_id : Text,
+    now : Int
+  ) : async Result.Result<Wallet> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Wallet suspension is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(wallet_id, #Wallet)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Wallet ID; expected WLT namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    var wallet_found : ?Wallet = null;
+
+    for (wallet in wallets.vals()) {
+      if (wallet.wallet_id == wallet_id) {
+        wallet_found := ?wallet;
+      };
+    };
+
+    switch (wallet_found) {
+      case null {
+        return #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Wallet not found",
+            null
+          )
+        );
+      };
+
+      case (?wallet) {
+        switch (wallet.status) {
+          case (#Active) {
+            let updated : Wallet = {
+              wallet_id = wallet.wallet_id;
+              account_id = wallet.account_id;
+              kind = wallet.kind;
+              status = #Suspended;
+              created_at = wallet.created_at;
+              updated_at = now;
+              metadata_ref = wallet.metadata_ref;
+            };
+
+            var next : [Wallet] = [];
+            for (item in wallets.vals()) {
+              if (item.wallet_id == wallet_id) {
+                next := Array.append<Wallet>(next, [updated]);
+              } else {
+                next := Array.append<Wallet>(next, [item]);
+              };
+            };
+
+            wallets := next;
+            #ok(updated)
+          };
+
+          case (#Suspended) {
+            #ok(wallet)
+          };
+
+          case (_) {
+            #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Wallet cannot be suspended from its current status",
+                null
+              )
+            )
+          };
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func close_wallet(
+    wallet_id : Text,
+    now : Int
+  ) : async Result.Result<Wallet> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Wallet closure is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(wallet_id, #Wallet)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Wallet ID; expected WLT namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    var wallet_found : ?Wallet = null;
+
+    for (wallet in wallets.vals()) {
+      if (wallet.wallet_id == wallet_id) {
+        wallet_found := ?wallet;
+      };
+    };
+
+    switch (wallet_found) {
+      case null {
+        return #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Wallet not found",
+            null
+          )
+        );
+      };
+
+      case (?wallet) {
+            switch (wallet.status) {
+      case (#Active) {
+        let updated : Wallet = {
+          wallet_id = wallet.wallet_id;
+          account_id = wallet.account_id;
+          kind = wallet.kind;
+          status = #Closed;
+          created_at = wallet.created_at;
+          updated_at = now;
+          metadata_ref = wallet.metadata_ref;
+        };
+
+        var next : [Wallet] = [];
+        for (item in wallets.vals()) {
+          if (item.wallet_id == wallet_id) {
+            next := Array.append<Wallet>(next, [updated]);
+          } else {
+            next := Array.append<Wallet>(next, [item]);
+          };
+        };
+
+        wallets := next;
+        #ok(updated)
+      };
+
+      case (#Suspended) {
+        let updated : Wallet = {
+          wallet_id = wallet.wallet_id;
+          account_id = wallet.account_id;
+          kind = wallet.kind;
+          status = #Closed;
+          created_at = wallet.created_at;
+          updated_at = now;
+          metadata_ref = wallet.metadata_ref;
+        };
+
+        var next : [Wallet] = [];
+        for (item in wallets.vals()) {
+          if (item.wallet_id == wallet_id) {
+            next := Array.append<Wallet>(next, [updated]);
+          } else {
+            next := Array.append<Wallet>(next, [item]);
+          };
+        };
+
+        wallets := next;
+        #ok(updated)
+      };
+
+      case (#Closed) {
+        #ok(wallet)
+      };
+
+      case (#Pending) {
+        #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Pending Wallet cannot be closed",
+            null
+          )
+        )
+      };
+
+      case (#Archived) {
+        #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Archived Wallet cannot be closed",
+            null
+          )
+        )
+      };
+    };
+  };
+};
+
+};
+
+public shared ({ caller }) func archive_wallet(
+    wallet_id : Text,
+    now : Int
+  ) : async Result.Result<Wallet> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Wallet archival is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(wallet_id, #Wallet)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Wallet ID; expected WLT namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    var wallet_found : ?Wallet = null;
+
+    for (wallet in wallets.vals()) {
+      if (wallet.wallet_id == wallet_id) {
+        wallet_found := ?wallet;
+      };
+    };
+
+    switch (wallet_found) {
+      case null {
+        return #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Wallet not found",
+            null
+          )
+        );
+      };
+
+      case (?wallet) {
+        switch (wallet.status) {
+          case (#Archived) {
+            return #ok(wallet)
+          };
+          case (_) {};
+        };
+
+        let updated : Wallet = {
+          wallet_id = wallet.wallet_id;
+          account_id = wallet.account_id;
+          kind = wallet.kind;
+          status = #Archived;
+          created_at = wallet.created_at;
+          updated_at = now;
+          metadata_ref = wallet.metadata_ref;
+        };
+
+        var next : [Wallet] = [];
+        for (item in wallets.vals()) {
+          if (item.wallet_id == wallet_id) {
+            next := Array.append<Wallet>(next, [updated]);
+          } else {
+            next := Array.append<Wallet>(next, [item]);
+          };
+        };
+
+        wallets := next;
+        #ok(updated)
+      };
+    };
   };
 
   public shared ({ caller }) func create_account(

@@ -1,3 +1,29 @@
+type WalletStatus = 
+ variant {
+   Active;
+   Archived;
+   Closed;
+   Pending;
+   Suspended;
+ };
+type WalletKind = 
+ variant {
+   Custodial;
+   Organization;
+   Other;
+   Personal;
+   Settlement;
+ };
+type Wallet = 
+ record {
+   account_id: text;
+   created_at: int;
+   kind: WalletKind;
+   metadata_ref: opt text;
+   status: WalletStatus;
+   updated_at: int;
+   wallet_id: text;
+ };
 type VerificationRef = 
  record {
    identity_id: text;
@@ -52,7 +78,7 @@ type TransferArg =
    created_at_time: opt nat64;
    from_subaccount: opt blob;
    memo: opt blob;
-   to: Account;
+   to: Account__1;
    token_id: nat;
  };
 type TokenMetadataResponse = vec TokenMetadataItem;
@@ -69,15 +95,25 @@ type RiskLevel =
    Low;
    Medium;
  };
-type Result_2 = 
+type Result_4 = 
+ variant {
+   err: Error;
+   ok: Wallet;
+ };
+type Result_3 = 
  variant {
    err: Error;
    ok: PrincipalBinding;
  };
-type Result_1 = 
+type Result_2 = 
  variant {
    err: Error;
    ok: VerificationRef;
+ };
+type Result_1 = 
+ variant {
+   err: Error;
+   ok: Account;
  };
 type Result = 
  variant {
@@ -127,7 +163,7 @@ type PrincipalBinding =
    identity_id: text;
    principal_ref: text;
  };
-type OwnerOfResponse = vec opt Account;
+type OwnerOfResponse = vec opt Account__1;
 type OwnerOfRequest = vec nat;
 type Metadata = 
  vec record {
@@ -262,10 +298,15 @@ type GeramCertificate =
  };
 type GERAM = 
  service {
+   activate_account: (account_id: text, now: int) -> (Result_1);
    activate_identity: (identity_id: text, now: int) -> (Result);
+   archive_account: (account_id: text, now: int) -> (Result_1);
    archive_identity: (identity_id: text, now: int) -> (Result);
    bind_principal: (identity_id: text, principal_ref: text, now: int) ->
-    (Result_2);
+    (Result_3);
+   close_account: (account_id: text, now: int) -> (Result_1);
+   create_account: (account_id: text, identity_id: text, kind: AccountKind,
+    metadata_ref: opt text, now: int) -> (Result_1);
    create_asset: (asset: Asset) -> (AssetResult);
    create_certificate: (certificate: GeramCertificate) -> (CertificateResult);
    create_energy_verification: (verification: EnergyVerification) ->
@@ -278,6 +319,10 @@ type GERAM =
    create_market_snapshot: (snapshot: MarketSnapshot) ->
     (MarketSnapshotResult);
    create_project: (project: Project) -> (ProjectResult);
+   create_wallet: (wallet_id: text, account_id: text, kind: WalletKind,
+    metadata_ref: opt text, now: int) -> (Result_4);
+   get_account: (account_id: text) -> (opt Account) query;
+   get_accounts_by_identity: (identity_id: text) -> (vec Account) query;
    get_asset: (asset_id: text) -> (opt Asset) query;
    get_certificate: (certificate_id: text) -> (opt GeramCertificate) query;
    get_energy_verification: (verification_id: text) ->
@@ -299,6 +344,8 @@ type GERAM =
     (vec VerificationRef) query;
    get_market_snapshot: (certificate_id: text) -> (opt MarketSnapshot) query;
    get_project: (project_id: text) -> (opt Project) query;
+   get_wallet: (wallet_id: text) -> (opt Wallet) query;
+   get_wallets_by_account: (account_id: text) -> (vec Wallet) query;
    icrc7_atomic_batch_transfers: () -> (opt bool) query;
    icrc7_balance_of: (args: BalanceOfRequest) -> (BalanceOfResponse) query;
    icrc7_collection_metadata: () -> (CollectionMetadataResponse) query;
@@ -318,7 +365,7 @@ type GERAM =
    icrc7_token_metadata: (args: TokenMetadataRequest) ->
     (TokenMetadataResponse) query;
    icrc7_tokens: (prev: opt nat, take: opt nat) -> (vec nat) query;
-   icrc7_tokens_of: (account: Account, prev: opt nat, take: opt nat) ->
+   icrc7_tokens_of: (account: Account__1, prev: opt nat, take: opt nat) ->
     (vec nat) query;
    icrc7_total_supply: () -> (nat) query;
    icrc7_transfer: (args: vec TransferArg) -> (vec opt TransferResult);
@@ -326,7 +373,7 @@ type GERAM =
    issue_certificate: (request: IssueCertificateRequest) ->
     (IssueCertificateResult);
    link_verification: (identity_id: text, verification_id: text) ->
-    (Result_1);
+    (Result_2);
    list_assets: () -> (vec Asset) query;
    list_certificates: () -> (vec GeramCertificate) query;
    list_energy_verifications: () -> (vec EnergyVerification) query;
@@ -340,10 +387,13 @@ type GERAM =
    list_projects: () -> (vec Project) query;
    record_fund_transaction: (transaction: FundTransaction) ->
     (FundTransactionResult);
+   suspend_account: (account_id: text, now: int) -> (Result_1);
    suspend_identity: (identity_id: text, now: int) -> (Result);
-   unbind_principal: (identity_id: text, principal_ref: text) -> (Result_2);
+   unbind_principal: (identity_id: text, principal_ref: text) -> (Result_3);
    unlink_verification: (identity_id: text, verification_id: text) ->
-    (Result_1);
+    (Result_2);
+   update_account: (account_id: text, kind: AccountKind, metadata_ref:
+    opt text, now: int) -> (Result_1);
    update_identity: (identity_id: text, kind: IdentityKind, metadata_ref:
     opt text, now: int) -> (Result);
    validate_certificate: (certificate_id: text) -> (ValidationResult) query;
@@ -538,7 +588,7 @@ type CertificateResult =
    ok: GeramCertificate;
  };
 type BalanceOfResponse = vec nat;
-type BalanceOfRequest = vec Account;
+type BalanceOfRequest = vec Account__1;
 type AssetStatus = 
  variant {
    Active;
@@ -571,10 +621,37 @@ type Asset =
    status: AssetStatus;
    title: text;
  };
-type Account = 
+type Account__1 = 
  record {
    owner: principal;
    subaccount: opt blob;
+ };
+type AccountStatus = 
+ variant {
+   Active;
+   Archived;
+   Closed;
+   Pending;
+   Suspended;
+ };
+type AccountKind = 
+ variant {
+   Custodial;
+   Institution;
+   Organization;
+   Other;
+   Personal;
+   Settlement;
+ };
+type Account = 
+ record {
+   account_id: text;
+   created_at: int;
+   identity_id: text;
+   kind: AccountKind;
+   metadata_ref: opt text;
+   status: AccountStatus;
+   updated_at: int;
  };
 type AIStrategyStatus = 
  variant {
