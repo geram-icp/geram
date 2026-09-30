@@ -1,16 +1,16 @@
 {
   "version": 3,
-  "mopsTomlDepsHash": "e5db3fc9692ff89d642b507ed57d84905b8820ae093945051f6bdac484449fb3",
-  "localDepsHash": "c59c4588baaeacd63f8db2b4f839fc64f889cf7ce1958e137f8c92f48c943797",
+  "mopsTomlDepsHash": "b3a824e72b5a5688a5761388b331d872e93879c011842db2e8aff6c78d5d63f3",
+  "localDepsHash": "776cb5004a6fa1f3273a9e1fd09378323b98058128460e5397da13489290456f",
   "deps": {
     "base": "0.16.0",
-    "candid-old": "https://github.com/gekctek/motoko_candid#v1.0.1@4f0c445a4f998d4d07b616fafd463eea8f52e4bc",
+    "candid": "https://github.com/gekctek/motoko_candid#v1.0.1@4f0c445a4f998d4d07b616fafd463eea8f52e4bc",
     "candy": "./candy-patched",
     "candy_0_1_12": "https://github.com/icdevs/candy_library#v0.1.12@20db7a8a74258bb07c7d354ea477bf95121747a3",
     "candy_0_2_0": "https://github.com/icdevs/candy_library#0.2.0@4fc5aebec44355da94a4d3ebef87623e4545d89a",
     "class-plus": "0.2.1",
     "core": "2.5.0",
-    "icrc7-mo": "0.6.0",
+    "icrc7-mo": "./icrc7-mo-patched",
     "map7": "https://github.com/ZhenyaUsenko/motoko-hash-map#v7.0.0@f0e25632e5da80118274e78ceeb5bec95f3c2b81",
     "map9": "https://github.com/ZhenyaUsenko/motoko-hash-map#v9.0.1@10b68f6ea8df5e72dfa4c07a50c8bb60a916c233",
     "matchers": "https://github.com/kritzcreek/motoko-matchers#v1.3.0@3dac8a071b69e4e651b25a7d9683fe831eb7cffd",
@@ -51,14 +51,6 @@
     },
     "core@2.1.0": {},
     "core@2.5.0": {},
-    "icrc7-mo@0.6.0": {
-      "base": "0.16.0",
-      "candy": "0.3.1",
-      "class-plus": "0.2.1",
-      "core": "2.5.0",
-      "ovs-fixed": "0.2.2",
-      "rep-indy-hash": "0.1.1"
-    },
     "ovs-fixed@0.2.2": {
       "class-plus": "0.2.1",
       "core": "2.1.0",
@@ -91,7 +83,7 @@
     "vector@0.2.0": {}
   },
   "github": {
-    "candid-old": {
+    "candid": {
       "resolved": "4f0c445a4f998d4d07b616fafd463eea8f52e4bc",
       "hash": "03703b97d16a28f08dd57dbe2b8a71f85cb8bad0082daa9c0628362058eb7748"
     },
@@ -262,26 +254,6 @@
       "core@2.5.0/src/pure/Queue.mo": "ed0bd0968457ea3bb24c5367f0dbdb159cfe950d0e2666224985e57a784fae3b",
       "core@2.5.0/src/pure/RealTimeQueue.mo": "af133ae61c69ce4e00db5e9db53ddeccad84373fef82a156c85360c2426349dd",
       "core@2.5.0/src/pure/Set.mo": "f0155b1d548cbc8889fcff75ef52f0cab7998b034621e4faac8d3b79d7bbac07"
-    },
-    "icrc7-mo@0.6.0": {
-      "icrc7-mo@0.6.0/LICENSE": "32db0c1689c0a01f7a11d3c0c3778c67ac8a02b25a848d8800d09685261466fc",
-      "icrc7-mo@0.6.0/README.md": "506f3144b32df9eb81bef0121ca67e53d46bfa9cd08680dba40a8dea15bb116e",
-      "icrc7-mo@0.6.0/example/main.mo": "7aed6f4c4c285ad6948f90f6377bcf511e7bee55e526562714f19f1f3a3f421e",
-      "icrc7-mo@0.6.0/mops.toml": "c8ab0c835492094ba2aa868805e4329bb11affe8b31d34494b30e7831b04c383",
-      "icrc7-mo@0.6.0/src/Inspect.mo": "5278e20c70e5a03a31ee3077fcd3d34531cc2ea23fd07c0fe9806522f0aec4dd",
-      "icrc7-mo@0.6.0/src/Interface.mo": "d1a199a842a22e49769d796dc90beac57722731326959dfde348e260455c4f41",
-      "icrc7-mo@0.6.0/src/lib.mo": "5f0d9d71e69a632b10f6ef1a026f9a242115c5f54394b560483defe64e8d45b3",
-      "icrc7-mo@0.6.0/src/migrations/lib.mo": "fec4dae702dfb6e5d7dbd0e038279ac039121b5d19a26ae4bb3246755831768b",
-      "icrc7-mo@0.6.0/src/migrations/types.mo": "72cf5878b392134bdee4afc908adeca0875d404b8a5b088e36e17c8ae6fbe458",
-      "icrc7-mo@0.6.0/src/migrations/v000_000_000/lib.mo": "8cd7a23e7e9f01f0953b33b2dde175cc3a9d643cf595082edab012f4a8bc936b",
-      "icrc7-mo@0.6.0/src/migrations/v000_000_000/types.mo": "28428a053891813ceddb91fe97b9211eb820f3f78e379243f76dfe93a8f4548f",
-      "icrc7-mo@0.6.0/src/migrations/v000_001_000/lib.mo": "d19d4d4bf10be35a3430b6368c7713263b4cc0ace46f05b6143fe5a7cb7bfe57",
-      "icrc7-mo@0.6.0/src/migrations/v000_001_000/types.mo": "7869b7a4e5fd3f55b24a88be52c5dee790ffaa84f345aabaf9ff665bcff281b8",
-      "icrc7-mo@0.6.0/src/mixin.mo": "ef2e6cdbb004b392fb87bc237e70dadafeaf25253dc517a9af89c7c59abcdcfb",
-      "icrc7-mo@0.6.0/src/mixin_temp2.mo": "0d25d4c0d450b37868a9e97da6f28d0030008a24601bf76dc8b382e4d588a1d7",
-      "icrc7-mo@0.6.0/src/openvaluesharing.mo": "f131ba9701206dee71bb17309781d4c489a4304bb0969aceada8baa8cc1149ca",
-      "icrc7-mo@0.6.0/src/service.mo": "f579a22125d5d4d6fd4f164535d79ab64d419c482611c4e1832a8ee75ba2ef0f",
-      "icrc7-mo@0.6.0/test_event.mo": "f7c1e8822819524d2ed17e94fdb0d8b96ba76ac2faf8b48b9cbf8a5077f6c34a"
     },
     "ovs-fixed@0.2.2": {
       "ovs-fixed@0.2.2/LICENSE": "1b7bef6b75686128fbb5c191e415d59e4c5fd61a90bf3de550fea9c2098d1b22",

@@ -6,6 +6,13 @@ import Time "mo:base/Time";
 
 import ICRC7Mixin "mo:icrc7-mo/mixin";
 import Protocol "./Protocol";
+import Result "./Result";
+import ErrorFactory "./ErrorFactory";
+import IDValidator "./ID/Validator";
+import Identity "./Identity";
+import PrincipalBinding "./PrincipalBinding";
+import VerificationRef "./VerificationRef";
+import Account "./Account";
 
 shared ({ caller = _owner }) persistent actor class GERAM() = this {
 
@@ -59,6 +66,15 @@ shared ({ caller = _owner }) persistent actor class GERAM() = this {
   // ============================================================
   // GERAM Protocol v1.0 — public type aliases
   // ============================================================
+
+  public type IdentityKind = Identity.IdentityKind;
+  public type IdentityStatus = Identity.IdentityStatus;
+  public type Identity = Identity.Identity;
+  public type PrincipalBinding = PrincipalBinding.PrincipalBinding;
+  public type VerificationRef = VerificationRef.VerificationRef;
+public type Account = Account.Account;
+  public type AccountKind = Account.AccountKind;
+  public type AccountStatus = Account.AccountStatus;
 
   public type AssetStatus = Protocol.AssetStatus;
   public type Asset = Protocol.Asset;
@@ -191,6 +207,1563 @@ shared ({ caller = _owner }) persistent actor class GERAM() = this {
   // این Registry هنوز دفتر صدور NFT نیست.
   // فقط لایه داده‌ای Protocol را نگهداری می‌کند.
   // ============================================================
+
+  stable var identities : [Identity] = [];
+  stable var principalBindings : [PrincipalBinding] = [];
+  stable var verificationRefs : [VerificationRef] = [];
+stable var accounts : [Account] = [];
+
+  // ==========================================================
+  // GERAM-P05 ? Identity Foundation API
+  // ==========================================================
+
+  public query func get_account(account_id : Text) : async ?Account {
+    switch (IDValidator.validateExpected(account_id, #Account)) {
+      case (#err(_)) {
+        return null;
+      };
+      case (#ok(_)) {};
+    };
+
+    for (account in accounts.vals()) {
+      if (account.account_id == account_id) {
+        return ?account;
+      };
+    };
+    null
+  };
+
+  public query func get_accounts_by_identity(identity_id : Text) : async [Account] {
+    switch (IDValidator.validateExpected(identity_id, #Identity)) {
+      case (#err(_)) {
+        return [];
+      };
+      case (#ok(_)) {};
+    };
+
+    var result : [Account] = [];
+    for (account in accounts.vals()) {
+      if (account.identity_id == identity_id) {
+        result := Array.append<Account>(result, [account]);
+      };
+    };
+    result
+  };
+
+  public query func get_identity(identity_id : Text) : async ?Identity {
+    for (identity in identities.vals()) {
+      if (identity.identity_id == identity_id) {
+        return ?identity;
+      };
+    };
+
+    null
+  };
+
+  public query func get_identity_by_principal(principal_ref : Text) : async ?Identity {
+    for (binding in principalBindings.vals()) {
+      if (binding.principal_ref == principal_ref and binding.active) {
+        for (identity in identities.vals()) {
+          if (identity.identity_id == binding.identity_id) {
+            return ?identity;
+          };
+        };
+      };
+    };
+
+    null
+  };
+
+  public query func list_identity_bindings(identity_id : Text) : async [PrincipalBinding] {
+    var result : [PrincipalBinding] = [];
+
+    for (binding in principalBindings.vals()) {
+      if (binding.identity_id == identity_id) {
+        result := Array.append<PrincipalBinding>(result, [binding]);
+      };
+    };
+
+    result
+  };
+
+  public query func get_identity_verifications(identity_id : Text) : async [VerificationRef] {
+    var result : [VerificationRef] = [];
+
+    for (verification in verificationRefs.vals()) {
+      if (verification.identity_id == identity_id) {
+        result := Array.append<VerificationRef>(result, [verification]);
+      };
+    };
+
+    result
+  };
+
+
+  // ==========================================================
+  // GERAM-P05.9.1 ? Identity Mutation API
+  // ==========================================================
+
+  public shared ({ caller }) func create_identity(
+    identity_id : Text,
+    kind : IdentityKind,
+    metadata_ref : ?Text,
+    now : Int
+  ) : async Result.Result<Identity> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Identity creation is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(identity_id, #Identity)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Identity ID; expected IDN namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    for (existing in identities.vals()) {
+      if (existing.identity_id == identity_id) {
+        return #err(
+          ErrorFactory.fromCode(
+            #Duplicate,
+            "Identity already exists",
+            null
+          )
+        );
+      };
+    };
+
+    let identity : Identity = {
+      identity_id = identity_id;
+      kind = kind;
+      status = #Pending;
+      created_at = now;
+      updated_at = now;
+      metadata_ref = metadata_ref;
+    };
+
+    identities := Array.append<Identity>(identities, [identity]);
+
+    #ok(identity)
+  };
+
+  public shared ({ caller }) func create_account(
+    account_id : Text,
+    identity_id : Text,
+    kind : AccountKind,
+    metadata_ref : ?Text,
+    now : Int
+  ) : async Result.Result<Account> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Account creation is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(account_id, #Account)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Account ID; expected ACC namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    switch (IDValidator.validateExpected(identity_id, #Identity)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Identity ID; expected IDN namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    for (existing in accounts.vals()) {
+      if (existing.account_id == account_id) {
+        return #err(
+          ErrorFactory.fromCode(
+            #Duplicate,
+            "Account already exists",
+            null
+          )
+        );
+      };
+    };
+
+    var identity_found : ?Identity = null;
+
+    for (identity in identities.vals()) {
+      if (identity.identity_id == identity_id) {
+        identity_found := ?identity;
+      };
+    };
+
+    switch (identity_found) {
+      case null {
+        return #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Identity not found",
+            null
+          )
+        );
+      };
+      case (?identity) {
+        switch (identity.status) {
+          case (#Archived) {
+            return #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Archived Identity cannot create an Account",
+                null
+              )
+            );
+          };
+          case (_) {};
+        };
+      };
+    };
+
+    let account : Account = {
+      account_id = account_id;
+      identity_id = identity_id;
+      kind = kind;
+      status = #Pending;
+      created_at = now;
+      updated_at = now;
+      metadata_ref = metadata_ref;
+    };
+
+    accounts := Array.append<Account>(accounts, [account]);
+
+    #ok(account)
+  };
+
+  public shared ({ caller }) func update_account(
+    account_id : Text,
+    kind : AccountKind,
+    metadata_ref : ?Text,
+    now : Int
+  ) : async Result.Result<Account> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Account update is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(account_id, #Account)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Account ID; expected ACC namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    var found : ?Account = null;
+
+    for (account in accounts.vals()) {
+      if (account.account_id == account_id) {
+        found := ?account;
+      };
+    };
+
+    switch (found) {
+      case null {
+        #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Account not found",
+            null
+          )
+        )
+      };
+
+      case (?account) {
+        switch (account.status) {
+          case (#Closed) {
+            #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Closed Account cannot be updated",
+                null
+              )
+            )
+          };
+
+          case (#Archived) {
+            #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Archived Account cannot be updated",
+                null
+              )
+            )
+          };
+
+          case (_) {
+            let updated : Account = {
+              account_id = account.account_id;
+              identity_id = account.identity_id;
+              kind = kind;
+              status = account.status;
+              created_at = account.created_at;
+              updated_at = now;
+              metadata_ref = metadata_ref;
+            };
+
+            var next : [Account] = [];
+
+            for (item in accounts.vals()) {
+              if (item.account_id == account_id) {
+                next := Array.append<Account>(next, [updated]);
+              } else {
+                next := Array.append<Account>(next, [item]);
+              };
+            };
+
+            accounts := next;
+            #ok(updated)
+          };
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func activate_account(
+    account_id : Text,
+    now : Int
+  ) : async Result.Result<Account> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Account activation is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(account_id, #Account)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Account ID; expected ACC namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    var found : ?Account = null;
+
+    for (account in accounts.vals()) {
+      if (account.account_id == account_id) {
+        found := ?account;
+      };
+    };
+
+    switch (found) {
+      case null {
+        #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Account not found",
+            null
+          )
+        )
+      };
+
+      case (?account) {
+        switch (account.status) {
+          case (#Pending) {
+            let updated : Account = {
+              account_id = account.account_id;
+              identity_id = account.identity_id;
+              kind = account.kind;
+              status = #Active;
+              created_at = account.created_at;
+              updated_at = now;
+              metadata_ref = account.metadata_ref;
+            };
+
+            var next : [Account] = [];
+
+            for (item in accounts.vals()) {
+              if (item.account_id == account_id) {
+                next := Array.append<Account>(next, [updated]);
+              } else {
+                next := Array.append<Account>(next, [item]);
+              };
+            };
+
+            accounts := next;
+            #ok(updated)
+          };
+
+          case (#Active) {
+            #ok(account)
+          };
+
+          case (#Suspended) {
+            #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Suspended Account must not be activated directly",
+                null
+              )
+            )
+          };
+
+          case (#Closed) {
+            #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Closed Account cannot be activated",
+                null
+              )
+            )
+          };
+
+          case (#Archived) {
+            #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Archived Account cannot be activated",
+                null
+              )
+            )
+          };
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func suspend_account(
+    account_id : Text,
+    now : Int
+  ) : async Result.Result<Account> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Account suspension is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(account_id, #Account)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Account ID; expected ACC namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    var found : ?Account = null;
+
+    for (account in accounts.vals()) {
+      if (account.account_id == account_id) {
+        found := ?account;
+      };
+    };
+
+    switch (found) {
+      case null {
+        #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Account not found",
+            null
+          )
+        )
+      };
+
+      case (?account) {
+        switch (account.status) {
+          case (#Active) {
+            let updated : Account = {
+              account_id = account.account_id;
+              identity_id = account.identity_id;
+              kind = account.kind;
+              status = #Suspended;
+              created_at = account.created_at;
+              updated_at = now;
+              metadata_ref = account.metadata_ref;
+            };
+
+            var next : [Account] = [];
+
+            for (item in accounts.vals()) {
+              if (item.account_id == account_id) {
+                next := Array.append<Account>(next, [updated]);
+              } else {
+                next := Array.append<Account>(next, [item]);
+              };
+            };
+
+            accounts := next;
+            #ok(updated)
+          };
+
+          case (#Suspended) {
+            #ok(account)
+          };
+
+          case (#Pending) {
+            #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Pending Account cannot be suspended",
+                null
+              )
+            )
+          };
+
+          case (#Closed) {
+            #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Closed Account cannot be suspended",
+                null
+              )
+            )
+          };
+
+          case (#Archived) {
+            #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Archived Account cannot be suspended",
+                null
+              )
+            )
+          };
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func close_account(
+    account_id : Text,
+    now : Int
+  ) : async Result.Result<Account> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Account closure is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(account_id, #Account)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Account ID; expected ACC namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    var found : ?Account = null;
+
+    for (account in accounts.vals()) {
+      if (account.account_id == account_id) {
+        found := ?account;
+      };
+    };
+
+    switch (found) {
+      case null {
+        #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Account not found",
+            null
+          )
+        )
+      };
+
+      case (?account) {
+        switch (account.status) {
+          case (#Active) {
+            let updated : Account = {
+              account_id = account.account_id;
+              identity_id = account.identity_id;
+              kind = account.kind;
+              status = #Closed;
+              created_at = account.created_at;
+              updated_at = now;
+              metadata_ref = account.metadata_ref;
+            };
+
+            var next : [Account] = [];
+
+            for (item in accounts.vals()) {
+              if (item.account_id == account_id) {
+                next := Array.append<Account>(next, [updated]);
+              } else {
+                next := Array.append<Account>(next, [item]);
+              };
+            };
+
+            accounts := next;
+            #ok(updated)
+          };
+
+          case (#Suspended) {
+            let updated : Account = {
+              account_id = account.account_id;
+              identity_id = account.identity_id;
+              kind = account.kind;
+              status = #Closed;
+              created_at = account.created_at;
+              updated_at = now;
+              metadata_ref = account.metadata_ref;
+            };
+
+            var next : [Account] = [];
+
+            for (item in accounts.vals()) {
+              if (item.account_id == account_id) {
+                next := Array.append<Account>(next, [updated]);
+              } else {
+                next := Array.append<Account>(next, [item]);
+              };
+            };
+
+            accounts := next;
+            #ok(updated)
+          };
+
+          case (#Closed) {
+            #ok(account)
+          };
+
+          case (#Pending) {
+            #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Pending Account cannot be closed",
+                null
+              )
+            )
+          };
+
+          case (#Archived) {
+            #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Archived Account cannot be closed",
+                null
+              )
+            )
+          };
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func archive_account(
+    account_id : Text,
+    now : Int
+  ) : async Result.Result<Account> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Account archival is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(account_id, #Account)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Account ID; expected ACC namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    var found : ?Account = null;
+
+    for (account in accounts.vals()) {
+      if (account.account_id == account_id) {
+        found := ?account;
+      };
+    };
+
+    switch (found) {
+      case null {
+        #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Account not found",
+            null
+          )
+        )
+      };
+
+      case (?account) {
+        switch (account.status) {
+          case (#Archived) {
+            #ok(account)
+          };
+
+          case (_) {
+            let updated : Account = {
+              account_id = account.account_id;
+              identity_id = account.identity_id;
+              kind = account.kind;
+              status = #Archived;
+              created_at = account.created_at;
+              updated_at = now;
+              metadata_ref = account.metadata_ref;
+            };
+
+            var next : [Account] = [];
+
+            for (item in accounts.vals()) {
+              if (item.account_id == account_id) {
+                next := Array.append<Account>(next, [updated]);
+              } else {
+                next := Array.append<Account>(next, [item]);
+              };
+            };
+
+            accounts := next;
+            #ok(updated)
+          };
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func update_identity(
+    identity_id : Text,
+    kind : IdentityKind,
+    metadata_ref : ?Text,
+    now : Int
+  ) : async Result.Result<Identity> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Identity update is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(identity_id, #Identity)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Identity ID; expected IDN namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    var found : ?Identity = null;
+
+    for (identity in identities.vals()) {
+      if (identity.identity_id == identity_id) {
+        found := ?identity;
+      };
+    };
+
+    switch (found) {
+      case null {
+        #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Identity not found",
+            null
+          )
+        )
+      };
+
+      case (?identity) {
+        switch (identity.status) {
+          case (#Archived) {
+            #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Archived Identity cannot be updated",
+                null
+              )
+            )
+          };
+
+          case (_) {
+            let updated : Identity = {
+              identity_id = identity.identity_id;
+              kind = kind;
+              status = identity.status;
+              created_at = identity.created_at;
+              updated_at = now;
+              metadata_ref = metadata_ref;
+            };
+
+            var next : [Identity] = [];
+
+            for (item in identities.vals()) {
+              if (item.identity_id == identity_id) {
+                next := Array.append<Identity>(next, [updated]);
+              } else {
+                next := Array.append<Identity>(next, [item]);
+              };
+            };
+
+            identities := next;
+            #ok(updated)
+          };
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func activate_identity(
+    identity_id : Text,
+    now : Int
+  ) : async Result.Result<Identity> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Identity activation is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(identity_id, #Identity)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Identity ID; expected IDN namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    var found : ?Identity = null;
+
+    for (identity in identities.vals()) {
+      if (identity.identity_id == identity_id) {
+        found := ?identity;
+      };
+    };
+
+    switch (found) {
+      case null {
+        #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Identity not found",
+            null
+          )
+        )
+      };
+
+      case (?identity) {
+        switch (identity.status) {
+          case (#Pending) {
+            let updated : Identity = {
+              identity_id = identity.identity_id;
+              kind = identity.kind;
+              status = #Active;
+              created_at = identity.created_at;
+              updated_at = now;
+              metadata_ref = identity.metadata_ref;
+            };
+
+            var next : [Identity] = [];
+
+            for (item in identities.vals()) {
+              if (item.identity_id == identity_id) {
+                next := Array.append<Identity>(next, [updated]);
+              } else {
+                next := Array.append<Identity>(next, [item]);
+              };
+            };
+
+            identities := next;
+            #ok(updated)
+          };
+
+          case (#Active) {
+            #ok(identity)
+          };
+
+          case (#Suspended) {
+            #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Suspended Identity must not be activated directly",
+                null
+              )
+            )
+          };
+
+          case (#Archived) {
+            #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Archived Identity cannot be activated",
+                null
+              )
+            )
+          };
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func suspend_identity(
+    identity_id : Text,
+    now : Int
+  ) : async Result.Result<Identity> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Identity suspension is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(identity_id, #Identity)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Identity ID; expected IDN namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    var found : ?Identity = null;
+
+    for (identity in identities.vals()) {
+      if (identity.identity_id == identity_id) {
+        found := ?identity;
+      };
+    };
+
+    switch (found) {
+      case null {
+        #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Identity not found",
+            null
+          )
+        )
+      };
+
+      case (?identity) {
+        switch (identity.status) {
+          case (#Active) {
+            let updated : Identity = {
+              identity_id = identity.identity_id;
+              kind = identity.kind;
+              status = #Suspended;
+              created_at = identity.created_at;
+              updated_at = now;
+              metadata_ref = identity.metadata_ref;
+            };
+
+            var next : [Identity] = [];
+
+            for (item in identities.vals()) {
+              if (item.identity_id == identity_id) {
+                next := Array.append<Identity>(next, [updated]);
+              } else {
+                next := Array.append<Identity>(next, [item]);
+              };
+            };
+
+            identities := next;
+            #ok(updated)
+          };
+
+          case (#Suspended) {
+            #ok(identity)
+          };
+
+          case (#Pending) {
+            #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Pending Identity cannot be suspended",
+                null
+              )
+            )
+          };
+
+          case (#Archived) {
+            #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Archived Identity cannot be suspended",
+                null
+              )
+            )
+          };
+        };
+      };
+    };
+  };
+
+
+  public shared ({ caller }) func archive_identity(
+    identity_id : Text,
+    now : Int
+  ) : async Result.Result<Identity> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Identity archiving is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(identity_id, #Identity)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Identity ID; expected IDN namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    var found : ?Identity = null;
+
+    for (identity in identities.vals()) {
+      if (identity.identity_id == identity_id) {
+        found := ?identity;
+      };
+    };
+
+    switch (found) {
+      case null {
+        #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Identity not found",
+            null
+          )
+        )
+      };
+
+      case (?identity) {
+        switch (identity.status) {
+
+          case (#Archived) {
+            #ok(identity)
+          };
+
+          case (_) {
+            let updated : Identity = {
+              identity_id = identity.identity_id;
+              kind = identity.kind;
+              status = #Archived;
+              created_at = identity.created_at;
+              updated_at = now;
+              metadata_ref = identity.metadata_ref;
+            };
+
+            var next : [Identity] = [];
+
+            for (item in identities.vals()) {
+              if (item.identity_id == identity_id) {
+                next := Array.append<Identity>(next, [updated]);
+              } else {
+                next := Array.append<Identity>(next, [item]);
+              };
+            };
+
+            identities := next;
+            #ok(updated)
+          };
+        };
+      };
+    };
+  };
+
+
+  public shared ({ caller }) func bind_principal(
+    identity_id : Text,
+    principal_ref : Text,
+    now : Int
+  ) : async Result.Result<PrincipalBinding> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Principal binding is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(identity_id, #Identity)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Identity ID; expected IDN namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    switch (IDValidator.validateExpected(principal_ref, #Principal)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Principal ID; expected PRN namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    var identity_found : ?Identity = null;
+
+    for (identity in identities.vals()) {
+      if (identity.identity_id == identity_id) {
+        identity_found := ?identity;
+      };
+    };
+
+    switch (identity_found) {
+      case null {
+        return #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Identity not found",
+            null
+          )
+        );
+      };
+
+      case (?identity) {
+        switch (identity.status) {
+          case (#Archived) {
+            return #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Archived Identity cannot receive a Principal binding",
+                null
+              )
+            );
+          };
+          case (_) {};
+        };      };
+    };
+
+    var active_binding : ?PrincipalBinding = null;
+
+    for (binding in principalBindings.vals()) {
+      if (binding.principal_ref == principal_ref and binding.active) {
+        active_binding := ?binding;
+      };
+    };
+
+    switch (active_binding) {
+      case (?binding) {
+        if (binding.identity_id == identity_id) {
+          return #ok(binding);
+        } else {
+          return #err(
+            ErrorFactory.fromCode(
+              #Duplicate,
+              "Principal is already bound to another Identity",
+              null
+            )
+          );
+        };
+      };
+
+      case null {};
+    };
+
+    let binding : PrincipalBinding = {
+      identity_id = identity_id;
+      principal_ref = principal_ref;
+      bound_at = now;
+      active = true;
+    };
+
+    principalBindings := Array.append<PrincipalBinding>(
+      principalBindings,
+      [binding]
+    );
+
+    #ok(binding)
+  };
+
+  public shared ({ caller }) func unbind_principal(
+    identity_id : Text,
+    principal_ref : Text
+  ) : async Result.Result<PrincipalBinding> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Principal unbinding is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(identity_id, #Identity)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Identity ID; expected IDN namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    switch (IDValidator.validateExpected(principal_ref, #Principal)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Principal ID; expected PRN namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    var found : ?PrincipalBinding = null;
+
+    for (binding in principalBindings.vals()) {
+      if (
+        binding.identity_id == identity_id
+        and binding.principal_ref == principal_ref
+      ) {
+        found := ?binding;
+      };
+    };
+
+    switch (found) {
+      case null {
+        #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Principal binding not found",
+            null
+          )
+        )
+      };
+
+      case (?binding) {
+        if (not binding.active) {
+          #ok(binding)
+        } else {
+          let updated : PrincipalBinding = {
+            identity_id = binding.identity_id;
+            principal_ref = binding.principal_ref;
+            bound_at = binding.bound_at;
+            active = false;
+          };
+
+          var next : [PrincipalBinding] = [];
+
+          for (item in principalBindings.vals()) {
+            if (
+              item.identity_id == identity_id
+              and item.principal_ref == principal_ref
+            ) {
+              next := Array.append<PrincipalBinding>(next, [updated]);
+            } else {
+              next := Array.append<PrincipalBinding>(next, [item]);
+            };
+          };
+
+          principalBindings := next;
+          #ok(updated)
+        };
+      };
+    };
+  };
+
+
+  public shared ({ caller }) func link_verification(
+    identity_id : Text,
+    verification_id : Text
+  ) : async Result.Result<VerificationRef> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Verification linking is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(identity_id, #Identity)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Identity ID; expected IDN namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    switch (IDValidator.validateExpected(verification_id, #Verification)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Verification ID; expected VER namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    var identity_found : ?Identity = null;
+
+    for (identity in identities.vals()) {
+      if (identity.identity_id == identity_id) {
+        identity_found := ?identity;
+      };
+    };
+
+    switch (identity_found) {
+      case null {
+        return #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Identity not found",
+            null
+          )
+        );
+      };
+
+      case (?identity) {
+        switch (identity.status) {
+          case (#Archived) {
+            return #err(
+              ErrorFactory.fromCode(
+                #InvalidValue,
+                "Archived Identity cannot receive a Verification link",
+                null
+              )
+            );
+          };
+          case (_) {};
+        };
+      };
+    };
+
+    for (reference in verificationRefs.vals()) {
+      if (
+        reference.identity_id == identity_id
+        and reference.verification_id == verification_id
+      ) {
+        return #ok(reference);
+      };
+    };
+
+    let reference : VerificationRef = {
+      identity_id = identity_id;
+      verification_id = verification_id;
+    };
+
+    verificationRefs := Array.append<VerificationRef>(
+      verificationRefs,
+      [reference]
+    );
+
+    #ok(reference)
+  };
+
+  public shared ({ caller }) func unlink_verification(
+    identity_id : Text,
+    verification_id : Text
+  ) : async Result.Result<VerificationRef> {
+
+    if (not isOwner(caller)) {
+      return #err(
+        ErrorFactory.fromCode(
+          #AuthorizationDenied,
+          "Verification unlinking is not authorized",
+          null
+        )
+      );
+    };
+
+    switch (IDValidator.validateExpected(identity_id, #Identity)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Identity ID; expected IDN namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    switch (IDValidator.validateExpected(verification_id, #Verification)) {
+      case (#err(_)) {
+        return #err(
+          ErrorFactory.fromCode(
+            #InvalidValue,
+            "Invalid Verification ID; expected VER namespace",
+            null
+          )
+        );
+      };
+      case (#ok(_)) {};
+    };
+
+    var found : ?VerificationRef = null;
+
+    for (reference in verificationRefs.vals()) {
+      if (
+        reference.identity_id == identity_id
+        and reference.verification_id == verification_id
+      ) {
+        found := ?reference;
+      };
+    };
+
+    switch (found) {
+      case null {
+        #err(
+          ErrorFactory.fromCode(
+            #NotFound,
+            "Verification reference not found",
+            null
+          )
+        )
+      };
+
+      case (?reference) {
+        var next : [VerificationRef] = [];
+
+        for (item in verificationRefs.vals()) {
+          if (
+            not (
+              item.identity_id == identity_id
+              and item.verification_id == verification_id
+            )
+          ) {
+            next := Array.append<VerificationRef>(next, [item]);
+          };
+        };
+
+        verificationRefs := next;
+        #ok(reference)
+      };
+    };
+  };
 
   stable var projects : [Project] = [];
   stable var assets : [Asset] = [];

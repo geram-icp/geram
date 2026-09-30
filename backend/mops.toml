@@ -6,7 +6,7 @@ args = [ "--default-persistent-actors" ]
 
 [dependencies]
 base = "0.16.0"
-icrc7-mo = "0.6.0"
+icrc7-mo = "./icrc7-mo-patched"
 candy = "./candy-patched"
 rep-indy-hash = "./rep-indy-hash-patched"
 
