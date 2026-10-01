@@ -98,27 +98,27 @@ type RiskLevel =
 type Result_4 = 
  variant {
    err: Error;
-   ok: Wallet;
+   ok: PrincipalBinding;
  };
 type Result_3 = 
  variant {
    err: Error;
-   ok: PrincipalBinding;
+   ok: VerificationRef;
  };
 type Result_2 = 
  variant {
    err: Error;
-   ok: VerificationRef;
+   ok: Account;
  };
 type Result_1 = 
  variant {
    err: Error;
-   ok: Account;
+   ok: Identity;
  };
 type Result = 
  variant {
    err: Error;
-   ok: Identity;
+   ok: Wallet;
  };
 type ProjectType = 
  variant {
@@ -298,15 +298,18 @@ type GeramCertificate =
  };
 type GERAM = 
  service {
-   activate_account: (account_id: text, now: int) -> (Result_1);
-   activate_identity: (identity_id: text, now: int) -> (Result);
-   archive_account: (account_id: text, now: int) -> (Result_1);
-   archive_identity: (identity_id: text, now: int) -> (Result);
+   activate_account: (account_id: text, now: int) -> (Result_2);
+   activate_identity: (identity_id: text, now: int) -> (Result_1);
+   activate_wallet: (wallet_id: text, now: int) -> (Result);
+   archive_account: (account_id: text, now: int) -> (Result_2);
+   archive_identity: (identity_id: text, now: int) -> (Result_1);
+   archive_wallet: (wallet_id: text, now: int) -> (Result);
    bind_principal: (identity_id: text, principal_ref: text, now: int) ->
-    (Result_3);
-   close_account: (account_id: text, now: int) -> (Result_1);
+    (Result_4);
+   close_account: (account_id: text, now: int) -> (Result_2);
+   close_wallet: (wallet_id: text, now: int) -> (Result);
    create_account: (account_id: text, identity_id: text, kind: AccountKind,
-    metadata_ref: opt text, now: int) -> (Result_1);
+    metadata_ref: opt text, now: int) -> (Result_2);
    create_asset: (asset: Asset) -> (AssetResult);
    create_certificate: (certificate: GeramCertificate) -> (CertificateResult);
    create_energy_verification: (verification: EnergyVerification) ->
@@ -315,12 +318,12 @@ type GERAM =
    create_fund_position: (position: FundPosition) -> (FundPositionResult);
    create_hami_fund: (fund: HamiFund) -> (HamiFundResult);
    create_identity: (identity_id: text, kind: IdentityKind, metadata_ref:
-    opt text, now: int) -> (Result);
+    opt text, now: int) -> (Result_1);
    create_market_snapshot: (snapshot: MarketSnapshot) ->
     (MarketSnapshotResult);
    create_project: (project: Project) -> (ProjectResult);
    create_wallet: (wallet_id: text, account_id: text, kind: WalletKind,
-    metadata_ref: opt text, now: int) -> (Result_4);
+    metadata_ref: opt text, now: int) -> (Result);
    get_account: (account_id: text) -> (opt Account) query;
    get_accounts_by_identity: (identity_id: text) -> (vec Account) query;
    get_asset: (asset_id: text) -> (opt Asset) query;
@@ -373,7 +376,7 @@ type GERAM =
    issue_certificate: (request: IssueCertificateRequest) ->
     (IssueCertificateResult);
    link_verification: (identity_id: text, verification_id: text) ->
-    (Result_2);
+    (Result_3);
    list_assets: () -> (vec Asset) query;
    list_certificates: () -> (vec GeramCertificate) query;
    list_energy_verifications: () -> (vec EnergyVerification) query;
@@ -387,15 +390,18 @@ type GERAM =
    list_projects: () -> (vec Project) query;
    record_fund_transaction: (transaction: FundTransaction) ->
     (FundTransactionResult);
-   suspend_account: (account_id: text, now: int) -> (Result_1);
-   suspend_identity: (identity_id: text, now: int) -> (Result);
-   unbind_principal: (identity_id: text, principal_ref: text) -> (Result_3);
+   suspend_account: (account_id: text, now: int) -> (Result_2);
+   suspend_identity: (identity_id: text, now: int) -> (Result_1);
+   suspend_wallet: (wallet_id: text, now: int) -> (Result);
+   unbind_principal: (identity_id: text, principal_ref: text) -> (Result_4);
    unlink_verification: (identity_id: text, verification_id: text) ->
-    (Result_2);
+    (Result_3);
    update_account: (account_id: text, kind: AccountKind, metadata_ref:
-    opt text, now: int) -> (Result_1);
+    opt text, now: int) -> (Result_2);
    update_identity: (identity_id: text, kind: IdentityKind, metadata_ref:
-    opt text, now: int) -> (Result);
+    opt text, now: int) -> (Result_1);
+   update_wallet: (wallet_id: text, kind: WalletKind, metadata_ref: opt text,
+    now: int) -> (Result);
    validate_certificate: (certificate_id: text) -> (ValidationResult) query;
    validate_fund_asset: (asset_id: text) -> (ValidationResult) query;
    validate_fund_position: (position_id: text) -> (ValidationResult) query;
