@@ -52,6 +52,268 @@ function record_opt_to_undefined<T>(arg: T | null): T | undefined {
     return arg == null ? undefined : arg;
 }
 export type TokenMetadataRequest = Array<bigint>;
+export type TransferError = {
+    __kind__: "GenericError";
+    GenericError: {
+        message: string;
+        error_code: bigint;
+    };
+} | {
+    __kind__: "Duplicate";
+    Duplicate: {
+        duplicate_of: bigint;
+    };
+} | {
+    __kind__: "NonExistingTokenId";
+    NonExistingTokenId: null;
+} | {
+    __kind__: "Unauthorized";
+    Unauthorized: null;
+} | {
+    __kind__: "CreatedInFuture";
+    CreatedInFuture: {
+        ledger_time: bigint;
+    };
+} | {
+    __kind__: "InvalidRecipient";
+    InvalidRecipient: null;
+} | {
+    __kind__: "GenericBatchError";
+    GenericBatchError: {
+        message: string;
+        error_code: bigint;
+    };
+} | {
+    __kind__: "TooOld";
+    TooOld: null;
+};
+export type Result_2 = {
+    __kind__: "ok";
+    ok: Account;
+} | {
+    __kind__: "err";
+    err: Error_;
+};
+export type CertificateResult = {
+    __kind__: "ok";
+    ok: GeramCertificate;
+} | {
+    __kind__: "err";
+    err: string;
+};
+export interface FundRiskParameters {
+    min_liquidity_bps: bigint;
+    max_asset_weight_bps: bigint;
+    max_single_project_weight_bps: bigint;
+    max_risk_level: RiskLevel;
+    max_drawdown_bps: bigint;
+}
+export interface AIModelReference {
+    model_version: string;
+    provider?: string;
+    enabled: boolean;
+    model_id: string;
+    endpoint_reference?: string;
+}
+export interface VerificationRef {
+    identity_id: string;
+    verification_id: string;
+}
+export type FundTransactionResult = {
+    __kind__: "ok";
+    ok: FundTransaction;
+} | {
+    __kind__: "err";
+    err: string;
+};
+export type FundPositionResult = {
+    __kind__: "ok";
+    ok: FundPosition;
+} | {
+    __kind__: "err";
+    err: string;
+};
+export type Result_4 = {
+    __kind__: "ok";
+    ok: PrincipalBinding;
+} | {
+    __kind__: "err";
+    err: Error_;
+};
+export type ProjectResult = {
+    __kind__: "ok";
+    ok: Project;
+} | {
+    __kind__: "err";
+    err: string;
+};
+export interface Wallet {
+    account_id: string;
+    status: WalletStatus;
+    updated_at: bigint;
+    kind: WalletKind;
+    created_at: bigint;
+    metadata_ref?: string;
+    wallet_id: string;
+}
+export interface PrincipalBinding {
+    active: boolean;
+    bound_at: bigint;
+    identity_id: string;
+    principal_ref: string;
+}
+export interface GERAMInterface {
+    activate_account(account_id: string, now: bigint): Promise<Result_2>;
+    activate_identity(identity_id: string, now: bigint): Promise<Result_1>;
+    activate_wallet(wallet_id: string, now: bigint): Promise<Result>;
+    archive_account(account_id: string, now: bigint): Promise<Result_2>;
+    archive_identity(identity_id: string, now: bigint): Promise<Result_1>;
+    archive_wallet(wallet_id: string, now: bigint): Promise<Result>;
+    bind_principal(identity_id: string, principal_ref: string, now: bigint): Promise<Result_4>;
+    close_account(account_id: string, now: bigint): Promise<Result_2>;
+    close_wallet(wallet_id: string, now: bigint): Promise<Result>;
+    create_account(account_id: string, identity_id: string, kind: AccountKind, metadata_ref: string | null, now: bigint): Promise<Result_2>;
+    create_asset(asset: Asset): Promise<AssetResult>;
+    create_certificate(certificate: GeramCertificate): Promise<CertificateResult>;
+    create_energy_verification(verification: EnergyVerification): Promise<EnergyVerificationResult>;
+    create_fund_asset(asset: FundAsset): Promise<FundAssetResult>;
+    create_fund_position(position: FundPosition): Promise<FundPositionResult>;
+    create_hami_fund(fund: HamiFund): Promise<HamiFundResult>;
+    create_identity(identity_id: string, kind: IdentityKind, metadata_ref: string | null, now: bigint): Promise<Result_1>;
+    create_market_snapshot(snapshot: MarketSnapshot): Promise<MarketSnapshotResult>;
+    create_project(project: Project): Promise<ProjectResult>;
+    create_wallet(wallet_id: string, account_id: string, kind: WalletKind, metadata_ref: string | null, now: bigint): Promise<Result>;
+    get_account(account_id: string): Promise<Account | null>;
+    get_accounts_by_identity(identity_id: string): Promise<Array<Account>>;
+    get_asset(asset_id: string): Promise<Asset | null>;
+    get_certificate(certificate_id: string): Promise<GeramCertificate | null>;
+    get_energy_verification(verification_id: string): Promise<EnergyVerification | null>;
+    get_fund_asset(asset_id: string): Promise<FundAsset | null>;
+    get_fund_position(position_id: string): Promise<FundPosition | null>;
+    get_fund_transaction(transaction_id: string): Promise<FundTransaction | null>;
+    get_hami_fund(fund_id: string): Promise<HamiFund | null>;
+    get_icrc85_stats(): Promise<{
+        activeActions: bigint;
+        nextCycleActionId?: bigint;
+        lastActionReported?: bigint;
+    }>;
+    get_identity(identity_id: string): Promise<Identity | null>;
+    get_identity_by_principal(principal_ref: string): Promise<Identity | null>;
+    get_identity_verifications(identity_id: string): Promise<Array<VerificationRef>>;
+    get_market_snapshot(certificate_id: string): Promise<MarketSnapshot | null>;
+    get_project(project_id: string): Promise<Project | null>;
+    get_wallet(wallet_id: string): Promise<Wallet | null>;
+    get_wallets_by_account(account_id: string): Promise<Array<Wallet>>;
+    icrc7_atomic_batch_transfers(): Promise<boolean | null>;
+    icrc7_balance_of(args: BalanceOfRequest): Promise<BalanceOfResponse>;
+    icrc7_collection_metadata(): Promise<CollectionMetadataResponse>;
+    icrc7_default_take_value(): Promise<bigint | null>;
+    icrc7_description(): Promise<string | null>;
+    icrc7_logo(): Promise<string | null>;
+    icrc7_max_memo_size(): Promise<bigint | null>;
+    icrc7_max_query_batch_size(): Promise<bigint | null>;
+    icrc7_max_take_value(): Promise<bigint | null>;
+    icrc7_max_update_batch_size(): Promise<bigint | null>;
+    icrc7_name(): Promise<string>;
+    icrc7_owner_of(args: OwnerOfRequest): Promise<OwnerOfResponse>;
+    icrc7_permitted_drift(): Promise<bigint | null>;
+    icrc7_supply_cap(): Promise<bigint | null>;
+    icrc7_supported_standards(): Promise<SupportedStandardsResponse>;
+    icrc7_symbol(): Promise<string>;
+    icrc7_token_metadata(args: TokenMetadataRequest): Promise<TokenMetadataResponse>;
+    icrc7_tokens(prev: bigint | null, take: bigint | null): Promise<Array<bigint>>;
+    icrc7_tokens_of(account: Account__1, prev: bigint | null, take: bigint | null): Promise<Array<bigint>>;
+    icrc7_total_supply(): Promise<bigint>;
+    icrc7_transfer(args: Array<TransferArg>): Promise<Array<TransferResult | null>>;
+    icrc7_tx_window(): Promise<bigint | null>;
+    issue_certificate(request: IssueCertificateRequest): Promise<IssueCertificateResult>;
+    link_verification(identity_id: string, verification_id: string): Promise<Result_3>;
+    list_assets(): Promise<Array<Asset>>;
+    list_certificates(): Promise<Array<GeramCertificate>>;
+    list_energy_verifications(): Promise<Array<EnergyVerification>>;
+    list_fund_assets(fund_id: string | null): Promise<Array<FundAsset>>;
+    list_fund_positions(fund_id: string | null): Promise<Array<FundPosition>>;
+    list_fund_transactions(fund_id: string | null): Promise<Array<FundTransaction>>;
+    list_hami_funds(): Promise<Array<HamiFund>>;
+    list_identity_bindings(identity_id: string): Promise<Array<PrincipalBinding>>;
+    list_market_snapshots(): Promise<Array<MarketSnapshot>>;
+    list_projects(): Promise<Array<Project>>;
+    record_fund_transaction(transaction: FundTransaction): Promise<FundTransactionResult>;
+    suspend_account(account_id: string, now: bigint): Promise<Result_2>;
+    suspend_identity(identity_id: string, now: bigint): Promise<Result_1>;
+    suspend_wallet(wallet_id: string, now: bigint): Promise<Result>;
+    unbind_principal(identity_id: string, principal_ref: string): Promise<Result_4>;
+    unlink_verification(identity_id: string, verification_id: string): Promise<Result_3>;
+    update_account(account_id: string, kind: AccountKind, metadata_ref: string | null, now: bigint): Promise<Result_2>;
+    update_identity(identity_id: string, kind: IdentityKind, metadata_ref: string | null, now: bigint): Promise<Result_1>;
+    update_wallet(wallet_id: string, kind: WalletKind, metadata_ref: string | null, now: bigint): Promise<Result>;
+    validate_certificate(certificate_id: string): Promise<ValidationResult>;
+    validate_fund_asset(asset_id: string): Promise<ValidationResult>;
+    validate_fund_position(position_id: string): Promise<ValidationResult>;
+    validate_fund_transaction(transaction_id: string): Promise<ValidationResult>;
+    validate_hami_fund(fund_id: string): Promise<ValidationResult>;
+    validate_project(project_id: string): Promise<ValidationResult>;
+}
+export type TokenMetadataResponse = Array<TokenMetadataItem>;
+export interface FundTransaction {
+    transaction_id: string;
+    transaction_type: FundTransactionType;
+    token_id?: bigint;
+    value: bigint;
+    reference?: string;
+    timestamp: bigint;
+    actor_principal: Principal;
+    ai_generated: boolean;
+    certificate_id?: string;
+    asset_id?: string;
+    fund_id: string;
+    position_id?: string;
+}
+export interface Error_ {
+    code: string;
+    state: ErrorState;
+    message: string;
+    category: ErrorCategory;
+    correlation_id?: string;
+    retryable: boolean;
+}
+export interface Account__1 {
+    owner: Principal;
+    subaccount?: Uint8Array;
+}
+export type Result = {
+    __kind__: "ok";
+    ok: Wallet;
+} | {
+    __kind__: "err";
+    err: Error_;
+};
+export interface Identity {
+    status: IdentityStatus;
+    updated_at: bigint;
+    kind: IdentityKind;
+    created_at: bigint;
+    metadata_ref?: string;
+    identity_id: string;
+}
+export type EnergyVerificationResult = {
+    __kind__: "ok";
+    ok: EnergyVerification;
+} | {
+    __kind__: "err";
+    err: string;
+};
+export type IssueCertificateResult = {
+    __kind__: "ok";
+    ok: {
+        transaction_id: bigint;
+        certificate: GeramCertificate;
+        token_id: bigint;
+    };
+} | {
+    __kind__: "err";
+    err: string;
+};
 export interface Project {
     status: ProjectStatus;
     title: string;
@@ -64,13 +326,6 @@ export interface Project {
     project_id: string;
     project_type: ProjectType;
 }
-export type EnergyVerificationResult = {
-    __kind__: "ok";
-    ok: EnergyVerification;
-} | {
-    __kind__: "err";
-    err: string;
-};
 export interface EnergyVerification {
     status: EnergyVerificationStatus;
     heater_model?: string;
@@ -90,21 +345,33 @@ export interface EnergyVerification {
     verification_timestamp: bigint;
     verification_id: string;
 }
-export type CertificateResult = {
-    __kind__: "ok";
-    ok: GeramCertificate;
-} | {
-    __kind__: "err";
-    err: string;
-};
-export type OwnerOfRequest = Array<bigint>;
-export interface FundRiskParameters {
-    min_liquidity_bps: bigint;
-    max_asset_weight_bps: bigint;
-    max_single_project_weight_bps: bigint;
-    max_risk_level: RiskLevel;
-    max_drawdown_bps: bigint;
+export interface GeramCertificate {
+    qr_reference?: string;
+    issuer_id: string;
+    annual_return_bps?: bigint;
+    physical_certificate_hash?: string;
+    token_id: bigint;
+    face_value: bigint;
+    initial_holder: Principal;
+    currency: string;
+    risk_level: RiskLevel;
+    project_id: string;
+    certificate_id: string;
+    issue_timestamp: bigint;
+    maturity_timestamp: bigint;
+    base_value: bigint;
+    physical_certificate_available: boolean;
 }
+export interface Account {
+    account_id: string;
+    status: AccountStatus;
+    updated_at: bigint;
+    kind: AccountKind;
+    created_at: bigint;
+    metadata_ref?: string;
+    identity_id: string;
+}
+export type OwnerOfRequest = Array<bigint>;
 export type MarketSnapshotResult = {
     __kind__: "ok";
     ok: MarketSnapshot;
@@ -119,38 +386,34 @@ export type FundAssetResult = {
     __kind__: "err";
     err: string;
 };
-export type FundTransactionResult = {
+export type Result_1 = {
     __kind__: "ok";
-    ok: FundTransaction;
+    ok: Identity;
 } | {
     __kind__: "err";
-    err: string;
+    err: Error_;
 };
-export type FundPositionResult = {
-    __kind__: "ok";
-    ok: FundPosition;
-} | {
-    __kind__: "err";
-    err: string;
-};
-export interface Account {
-    owner: Principal;
-    subaccount?: Uint8Array;
+export interface IssueCertificateRequest {
+    title?: string;
+    asset_type?: string;
+    qr_reference?: string;
+    issuer_id: string;
+    annual_return_bps?: bigint;
+    physical_certificate_hash?: string;
+    face_value: bigint;
+    initial_holder: Principal;
+    external_reference?: string;
+    description?: string;
+    metadata_uri?: string;
+    currency: string;
+    risk_level: RiskLevel;
+    project_id: string;
+    certificate_id: string;
+    asset_id?: string;
+    maturity_timestamp: bigint;
+    base_value: bigint;
+    physical_certificate_available: boolean;
 }
-export interface AIModelReference {
-    model_version: string;
-    provider?: string;
-    enabled: boolean;
-    model_id: string;
-    endpoint_reference?: string;
-}
-export type ProjectResult = {
-    __kind__: "ok";
-    ok: Project;
-} | {
-    __kind__: "err";
-    err: string;
-};
 export interface FinancialTerms {
     annual_return_bps?: bigint;
     face_value: bigint;
@@ -228,68 +491,6 @@ export type AssetResult = {
     __kind__: "err";
     err: string;
 };
-export interface GERAMInterface {
-    create_asset(asset: Asset): Promise<AssetResult>;
-    create_certificate(certificate: GeramCertificate): Promise<CertificateResult>;
-    create_energy_verification(verification: EnergyVerification): Promise<EnergyVerificationResult>;
-    create_fund_asset(asset: FundAsset): Promise<FundAssetResult>;
-    create_fund_position(position: FundPosition): Promise<FundPositionResult>;
-    create_hami_fund(fund: HamiFund): Promise<HamiFundResult>;
-    create_market_snapshot(snapshot: MarketSnapshot): Promise<MarketSnapshotResult>;
-    create_project(project: Project): Promise<ProjectResult>;
-    get_asset(asset_id: string): Promise<Asset | null>;
-    get_certificate(certificate_id: string): Promise<GeramCertificate | null>;
-    get_energy_verification(verification_id: string): Promise<EnergyVerification | null>;
-    get_fund_asset(asset_id: string): Promise<FundAsset | null>;
-    get_fund_position(position_id: string): Promise<FundPosition | null>;
-    get_fund_transaction(transaction_id: string): Promise<FundTransaction | null>;
-    get_hami_fund(fund_id: string): Promise<HamiFund | null>;
-    get_icrc85_stats(): Promise<{
-        activeActions: bigint;
-        nextCycleActionId?: bigint;
-        lastActionReported?: bigint;
-    }>;
-    get_market_snapshot(certificate_id: string): Promise<MarketSnapshot | null>;
-    get_project(project_id: string): Promise<Project | null>;
-    icrc7_atomic_batch_transfers(): Promise<boolean | null>;
-    icrc7_balance_of(args: BalanceOfRequest): Promise<BalanceOfResponse>;
-    icrc7_collection_metadata(): Promise<CollectionMetadataResponse>;
-    icrc7_default_take_value(): Promise<bigint | null>;
-    icrc7_description(): Promise<string | null>;
-    icrc7_logo(): Promise<string | null>;
-    icrc7_max_memo_size(): Promise<bigint | null>;
-    icrc7_max_query_batch_size(): Promise<bigint | null>;
-    icrc7_max_take_value(): Promise<bigint | null>;
-    icrc7_max_update_batch_size(): Promise<bigint | null>;
-    icrc7_name(): Promise<string>;
-    icrc7_owner_of(args: OwnerOfRequest): Promise<OwnerOfResponse>;
-    icrc7_permitted_drift(): Promise<bigint | null>;
-    icrc7_supply_cap(): Promise<bigint | null>;
-    icrc7_supported_standards(): Promise<SupportedStandardsResponse>;
-    icrc7_symbol(): Promise<string>;
-    icrc7_token_metadata(args: TokenMetadataRequest): Promise<TokenMetadataResponse>;
-    icrc7_tokens(prev: bigint | null, take: bigint | null): Promise<Array<bigint>>;
-    icrc7_tokens_of(account: Account, prev: bigint | null, take: bigint | null): Promise<Array<bigint>>;
-    icrc7_total_supply(): Promise<bigint>;
-    icrc7_transfer(args: Array<TransferArg>): Promise<Array<TransferResult | null>>;
-    icrc7_tx_window(): Promise<bigint | null>;
-    list_assets(): Promise<Array<Asset>>;
-    list_certificates(): Promise<Array<GeramCertificate>>;
-    list_energy_verifications(): Promise<Array<EnergyVerification>>;
-    list_fund_assets(fund_id: string | null): Promise<Array<FundAsset>>;
-    list_fund_positions(fund_id: string | null): Promise<Array<FundPosition>>;
-    list_fund_transactions(fund_id: string | null): Promise<Array<FundTransaction>>;
-    list_hami_funds(): Promise<Array<HamiFund>>;
-    list_market_snapshots(): Promise<Array<MarketSnapshot>>;
-    list_projects(): Promise<Array<Project>>;
-    record_fund_transaction(transaction: FundTransaction): Promise<FundTransactionResult>;
-    validate_certificate(certificate_id: string): Promise<ValidationResult>;
-    validate_fund_asset(asset_id: string): Promise<ValidationResult>;
-    validate_fund_position(position_id: string): Promise<ValidationResult>;
-    validate_fund_transaction(transaction_id: string): Promise<ValidationResult>;
-    validate_hami_fund(fund_id: string): Promise<ValidationResult>;
-    validate_project(project_id: string): Promise<ValidationResult>;
-}
 export interface FundAsset {
     active: boolean;
     asset_type: string;
@@ -304,7 +505,7 @@ export interface FundAsset {
     acquisition_value: bigint;
     fund_id: string;
 }
-export type TokenMetadataResponse = Array<TokenMetadataItem>;
+export type BalanceOfResponse = Array<bigint>;
 export type HamiFundResult = {
     __kind__: "ok";
     ok: HamiFund;
@@ -312,22 +513,7 @@ export type HamiFundResult = {
     __kind__: "err";
     err: string;
 };
-export type BalanceOfResponse = Array<bigint>;
-export type BalanceOfRequest = Array<Account>;
-export interface FundTransaction {
-    transaction_id: string;
-    transaction_type: FundTransactionType;
-    token_id?: bigint;
-    value: bigint;
-    reference?: string;
-    timestamp: bigint;
-    actor_principal: Principal;
-    ai_generated: boolean;
-    certificate_id?: string;
-    asset_id?: string;
-    fund_id: string;
-    position_id?: string;
-}
+export type BalanceOfRequest = Array<Account__1>;
 export interface FundPosition {
     updated_at: bigint;
     active: boolean;
@@ -343,18 +529,19 @@ export interface FundPosition {
 export type CollectionMetadataResponse = Array<[string, Value]>;
 export type Metadata = Array<[string, Value]>;
 export interface TransferArg {
-    to: Account;
+    to: Account__1;
     token_id: bigint;
     memo?: Uint8Array;
     from_subaccount?: Uint8Array;
     created_at_time?: bigint;
 }
-export interface AssetReference {
-    registry_reference?: string;
-    asset_type: string;
-    description: string;
-    asset_id: string;
-}
+export type Result_3 = {
+    __kind__: "ok";
+    ok: VerificationRef;
+} | {
+    __kind__: "err";
+    err: Error_;
+};
 export interface MarketSnapshot {
     supply_level?: bigint;
     annual_return_bps?: bigint;
@@ -378,6 +565,12 @@ export type SupportedStandardsResponse = Array<{
     url: string;
     name: string;
 }>;
+export interface AssetReference {
+    registry_reference?: string;
+    asset_type: string;
+    description: string;
+    asset_id: string;
+}
 export type ValidationResult = {
     __kind__: "ok";
     ok: string;
@@ -385,65 +578,28 @@ export type ValidationResult = {
     __kind__: "err";
     err: string;
 };
-export type OwnerOfResponse = Array<Account | null>;
+export type OwnerOfResponse = Array<Account__1 | null>;
 export type TokenMetadataItem = Metadata | null;
-export type TransferError = {
-    __kind__: "GenericError";
-    GenericError: {
-        message: string;
-        error_code: bigint;
-    };
-} | {
-    __kind__: "Duplicate";
-    Duplicate: {
-        duplicate_of: bigint;
-    };
-} | {
-    __kind__: "NonExistingTokenId";
-    NonExistingTokenId: null;
-} | {
-    __kind__: "Unauthorized";
-    Unauthorized: null;
-} | {
-    __kind__: "CreatedInFuture";
-    CreatedInFuture: {
-        ledger_time: bigint;
-    };
-} | {
-    __kind__: "InvalidRecipient";
-    InvalidRecipient: null;
-} | {
-    __kind__: "GenericBatchError";
-    GenericBatchError: {
-        message: string;
-        error_code: bigint;
-    };
-} | {
-    __kind__: "TooOld";
-    TooOld: null;
-};
-export interface GeramCertificate {
-    qr_reference?: string;
-    issuer_id: string;
-    annual_return_bps?: bigint;
-    physical_certificate_hash?: string;
-    token_id: bigint;
-    face_value: bigint;
-    initial_holder: Principal;
-    currency: string;
-    risk_level: RiskLevel;
-    project_id: string;
-    certificate_id: string;
-    issue_timestamp: bigint;
-    maturity_timestamp: bigint;
-    base_value: bigint;
-    physical_certificate_available: boolean;
-}
 export enum AIStrategyStatus {
     Disabled = "Disabled",
     Advisory = "Advisory",
     Automated = "Automated",
     Assisted = "Assisted"
+}
+export enum AccountKind {
+    Institution = "Institution",
+    Personal = "Personal",
+    Organization = "Organization",
+    Custodial = "Custodial",
+    Other = "Other",
+    Settlement = "Settlement"
+}
+export enum AccountStatus {
+    Closed = "Closed",
+    Active = "Active",
+    Suspended = "Suspended",
+    Archived = "Archived",
+    Pending = "Pending"
 }
 export enum AssetStatus {
     Inactive = "Inactive",
@@ -457,6 +613,22 @@ export enum EnergyVerificationStatus {
     Verified = "Verified",
     Expired = "Expired",
     Pending = "Pending"
+}
+export enum ErrorCategory {
+    RequiredField = "RequiredField",
+    BusinessRule = "BusinessRule",
+    System = "System",
+    Authorization = "Authorization",
+    NotFound = "NotFound",
+    Identity = "Identity",
+    External = "External",
+    Validation = "Validation",
+    Reference = "Reference",
+    Conflict = "Conflict"
+}
+export enum ErrorState {
+    Failed = "Failed",
+    Unknown = "Unknown"
 }
 export enum FundStatus {
     Paused = "Paused",
@@ -493,6 +665,18 @@ export enum FundType {
     Housing = "Housing",
     Other = "Other"
 }
+export enum IdentityKind {
+    Institution = "Institution",
+    Organization = "Organization",
+    Individual = "Individual",
+    Other = "Other"
+}
+export enum IdentityStatus {
+    Active = "Active",
+    Suspended = "Suspended",
+    Archived = "Archived",
+    Pending = "Pending"
+}
 export enum ProjectStatus {
     Active = "Active",
     Matured = "Matured",
@@ -514,70 +698,133 @@ export enum RiskLevel {
     High = "High",
     Medium = "Medium"
 }
+export enum WalletKind {
+    Personal = "Personal",
+    Organization = "Organization",
+    Custodial = "Custodial",
+    Other = "Other",
+    Settlement = "Settlement"
+}
 export interface backendInterface extends GERAMInterface {
 }
-import type { AIModelReference as _AIModelReference, AIStrategyStatus as _AIStrategyStatus, Account as _Account, Asset as _Asset, AssetReference as _AssetReference, AssetResult as _AssetResult, AssetStatus as _AssetStatus, BalanceOfRequest as _BalanceOfRequest, CertificateResult as _CertificateResult, CollectionMetadataResponse as _CollectionMetadataResponse, EnergyVerification as _EnergyVerification, EnergyVerificationResult as _EnergyVerificationResult, EnergyVerificationStatus as _EnergyVerificationStatus, FinancialTerms as _FinancialTerms, FundAsset as _FundAsset, FundAssetResult as _FundAssetResult, FundPosition as _FundPosition, FundPositionResult as _FundPositionResult, FundRiskParameters as _FundRiskParameters, FundStatus as _FundStatus, FundStrategy as _FundStrategy, FundTransaction as _FundTransaction, FundTransactionResult as _FundTransactionResult, FundTransactionType as _FundTransactionType, FundType as _FundType, GeramCertificate as _GeramCertificate, HamiFund as _HamiFund, HamiFundResult as _HamiFundResult, Map as _Map, MarketSnapshot as _MarketSnapshot, MarketSnapshotResult as _MarketSnapshotResult, Metadata as _Metadata, OwnerOfResponse as _OwnerOfResponse, Project as _Project, ProjectResult as _ProjectResult, ProjectStatus as _ProjectStatus, ProjectType as _ProjectType, RiskLevel as _RiskLevel, TokenMetadataItem as _TokenMetadataItem, TokenMetadataResponse as _TokenMetadataResponse, TransferArg as _TransferArg, TransferError as _TransferError, TransferResult as _TransferResult, ValidationResult as _ValidationResult, Valuation as _Valuation, Value as _Value } from "./declarations/backend.did";
+import type { AIModelReference as _AIModelReference, AIStrategyStatus as _AIStrategyStatus, Account as _Account, AccountKind as _AccountKind, AccountStatus as _AccountStatus, Account__1 as _Account__1, Asset as _Asset, AssetReference as _AssetReference, AssetResult as _AssetResult, AssetStatus as _AssetStatus, BalanceOfRequest as _BalanceOfRequest, CertificateResult as _CertificateResult, CollectionMetadataResponse as _CollectionMetadataResponse, EnergyVerification as _EnergyVerification, EnergyVerificationResult as _EnergyVerificationResult, EnergyVerificationStatus as _EnergyVerificationStatus, Error as _Error, ErrorCategory as _ErrorCategory, ErrorState as _ErrorState, FinancialTerms as _FinancialTerms, FundAsset as _FundAsset, FundAssetResult as _FundAssetResult, FundPosition as _FundPosition, FundPositionResult as _FundPositionResult, FundRiskParameters as _FundRiskParameters, FundStatus as _FundStatus, FundStrategy as _FundStrategy, FundTransaction as _FundTransaction, FundTransactionResult as _FundTransactionResult, FundTransactionType as _FundTransactionType, FundType as _FundType, GeramCertificate as _GeramCertificate, HamiFund as _HamiFund, HamiFundResult as _HamiFundResult, Identity as _Identity, IdentityKind as _IdentityKind, IdentityStatus as _IdentityStatus, IssueCertificateRequest as _IssueCertificateRequest, IssueCertificateResult as _IssueCertificateResult, Map as _Map, MarketSnapshot as _MarketSnapshot, MarketSnapshotResult as _MarketSnapshotResult, Metadata as _Metadata, OwnerOfResponse as _OwnerOfResponse, PrincipalBinding as _PrincipalBinding, Project as _Project, ProjectResult as _ProjectResult, ProjectStatus as _ProjectStatus, ProjectType as _ProjectType, Result as _Result, Result_1 as _Result_1, Result_2 as _Result_2, Result_3 as _Result_3, Result_4 as _Result_4, RiskLevel as _RiskLevel, TokenMetadataItem as _TokenMetadataItem, TokenMetadataResponse as _TokenMetadataResponse, TransferArg as _TransferArg, TransferError as _TransferError, TransferResult as _TransferResult, ValidationResult as _ValidationResult, Valuation as _Valuation, Value as _Value, VerificationRef as _VerificationRef, Wallet as _Wallet, WalletKind as _WalletKind, WalletStatus as _WalletStatus } from "./declarations/backend.did";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>){}
+    async activate_account(arg0: string, arg1: bigint): Promise<Result_2> {
+        const result = await this.actor.activate_account(arg0, arg1);
+        return from_candid_Result_2_n1(result);
+    }
+    async activate_identity(arg0: string, arg1: bigint): Promise<Result_1> {
+        const result = await this.actor.activate_identity(arg0, arg1);
+        return from_candid_Result_1_n16(result);
+    }
+    async activate_wallet(arg0: string, arg1: bigint): Promise<Result> {
+        const result = await this.actor.activate_wallet(arg0, arg1);
+        return from_candid_Result_n24(result);
+    }
+    async archive_account(arg0: string, arg1: bigint): Promise<Result_2> {
+        const result = await this.actor.archive_account(arg0, arg1);
+        return from_candid_Result_2_n1(result);
+    }
+    async archive_identity(arg0: string, arg1: bigint): Promise<Result_1> {
+        const result = await this.actor.archive_identity(arg0, arg1);
+        return from_candid_Result_1_n16(result);
+    }
+    async archive_wallet(arg0: string, arg1: bigint): Promise<Result> {
+        const result = await this.actor.archive_wallet(arg0, arg1);
+        return from_candid_Result_n24(result);
+    }
+    async bind_principal(arg0: string, arg1: string, arg2: bigint): Promise<Result_4> {
+        const result = await this.actor.bind_principal(arg0, arg1, arg2);
+        return from_candid_Result_4_n31(result);
+    }
+    async close_account(arg0: string, arg1: bigint): Promise<Result_2> {
+        const result = await this.actor.close_account(arg0, arg1);
+        return from_candid_Result_2_n1(result);
+    }
+    async close_wallet(arg0: string, arg1: bigint): Promise<Result> {
+        const result = await this.actor.close_wallet(arg0, arg1);
+        return from_candid_Result_n24(result);
+    }
+    async create_account(arg0: string, arg1: string, arg2: AccountKind, arg3: string | null, arg4: bigint): Promise<Result_2> {
+        const result = await this.actor.create_account(arg0, arg1, to_candid_AccountKind_n33(arg2), to_candid_opt_n35(arg3), arg4);
+        return from_candid_Result_2_n1(result);
+    }
     async create_asset(arg0: Asset): Promise<AssetResult> {
-        const result = await this.actor.create_asset(to_candid_Asset_n1(arg0));
-        return from_candid_AssetResult_n5(result);
+        const result = await this.actor.create_asset(to_candid_Asset_n36(arg0));
+        return from_candid_AssetResult_n40(result);
     }
     async create_certificate(arg0: GeramCertificate): Promise<CertificateResult> {
-        const result = await this.actor.create_certificate(to_candid_GeramCertificate_n12(arg0));
-        return from_candid_CertificateResult_n16(result);
+        const result = await this.actor.create_certificate(to_candid_GeramCertificate_n46(arg0));
+        return from_candid_CertificateResult_n50(result);
     }
     async create_energy_verification(arg0: EnergyVerification): Promise<EnergyVerificationResult> {
-        const result = await this.actor.create_energy_verification(to_candid_EnergyVerification_n23(arg0));
-        return from_candid_EnergyVerificationResult_n27(result);
+        const result = await this.actor.create_energy_verification(to_candid_EnergyVerification_n57(arg0));
+        return from_candid_EnergyVerificationResult_n61(result);
     }
     async create_fund_asset(arg0: FundAsset): Promise<FundAssetResult> {
-        const result = await this.actor.create_fund_asset(to_candid_FundAsset_n33(arg0));
-        return from_candid_FundAssetResult_n35(result);
+        const result = await this.actor.create_fund_asset(to_candid_FundAsset_n67(arg0));
+        return from_candid_FundAssetResult_n69(result);
     }
     async create_fund_position(arg0: FundPosition): Promise<FundPositionResult> {
         const result = await this.actor.create_fund_position(arg0);
-        return from_candid_FundPositionResult_n39(result);
+        return from_candid_FundPositionResult_n73(result);
     }
     async create_hami_fund(arg0: HamiFund): Promise<HamiFundResult> {
-        const result = await this.actor.create_hami_fund(to_candid_HamiFund_n41(arg0));
-        return from_candid_HamiFundResult_n55(result);
+        const result = await this.actor.create_hami_fund(to_candid_HamiFund_n75(arg0));
+        return from_candid_HamiFundResult_n89(result);
+    }
+    async create_identity(arg0: string, arg1: IdentityKind, arg2: string | null, arg3: bigint): Promise<Result_1> {
+        const result = await this.actor.create_identity(arg0, to_candid_IdentityKind_n107(arg1), to_candid_opt_n35(arg2), arg3);
+        return from_candid_Result_1_n16(result);
     }
     async create_market_snapshot(arg0: MarketSnapshot): Promise<MarketSnapshotResult> {
-        const result = await this.actor.create_market_snapshot(to_candid_MarketSnapshot_n73(arg0));
-        return from_candid_MarketSnapshotResult_n75(result);
+        const result = await this.actor.create_market_snapshot(to_candid_MarketSnapshot_n109(arg0));
+        return from_candid_MarketSnapshotResult_n111(result);
     }
     async create_project(arg0: Project): Promise<ProjectResult> {
-        const result = await this.actor.create_project(to_candid_Project_n79(arg0));
-        return from_candid_ProjectResult_n91(result);
+        const result = await this.actor.create_project(to_candid_Project_n115(arg0));
+        return from_candid_ProjectResult_n127(result);
+    }
+    async create_wallet(arg0: string, arg1: string, arg2: WalletKind, arg3: string | null, arg4: bigint): Promise<Result> {
+        const result = await this.actor.create_wallet(arg0, arg1, to_candid_WalletKind_n141(arg2), to_candid_opt_n35(arg3), arg4);
+        return from_candid_Result_n24(result);
+    }
+    async get_account(arg0: string): Promise<Account | null> {
+        const result = await this.actor.get_account(arg0);
+        return from_candid_opt_n143(result);
+    }
+    async get_accounts_by_identity(arg0: string): Promise<Array<Account>> {
+        const result = await this.actor.get_accounts_by_identity(arg0);
+        return from_candid_vec_n144(result);
     }
     async get_asset(arg0: string): Promise<Asset | null> {
         const result = await this.actor.get_asset(arg0);
-        return from_candid_opt_n105(result);
+        return from_candid_opt_n145(result);
     }
     async get_certificate(arg0: string): Promise<GeramCertificate | null> {
         const result = await this.actor.get_certificate(arg0);
-        return from_candid_opt_n106(result);
+        return from_candid_opt_n146(result);
     }
     async get_energy_verification(arg0: string): Promise<EnergyVerification | null> {
         const result = await this.actor.get_energy_verification(arg0);
-        return from_candid_opt_n107(result);
+        return from_candid_opt_n147(result);
     }
     async get_fund_asset(arg0: string): Promise<FundAsset | null> {
         const result = await this.actor.get_fund_asset(arg0);
-        return from_candid_opt_n108(result);
+        return from_candid_opt_n148(result);
     }
     async get_fund_position(arg0: string): Promise<FundPosition | null> {
         const result = await this.actor.get_fund_position(arg0);
-        return from_candid_opt_n109(result);
+        return from_candid_opt_n149(result);
     }
     async get_fund_transaction(arg0: string): Promise<FundTransaction | null> {
         const result = await this.actor.get_fund_transaction(arg0);
-        return from_candid_opt_n110(result);
+        return from_candid_opt_n150(result);
     }
     async get_hami_fund(arg0: string): Promise<HamiFund | null> {
         const result = await this.actor.get_hami_fund(arg0);
-        return from_candid_opt_n115(result);
+        return from_candid_opt_n155(result);
     }
     async get_icrc85_stats(): Promise<{
         activeActions: bigint;
@@ -585,55 +832,75 @@ export class Backend implements backendInterface {
         lastActionReported?: bigint;
     }> {
         const result = await this.actor.get_icrc85_stats();
-        return from_candid_record_n116(result);
+        return from_candid_record_n156(result);
+    }
+    async get_identity(arg0: string): Promise<Identity | null> {
+        const result = await this.actor.get_identity(arg0);
+        return from_candid_opt_n157(result);
+    }
+    async get_identity_by_principal(arg0: string): Promise<Identity | null> {
+        const result = await this.actor.get_identity_by_principal(arg0);
+        return from_candid_opt_n157(result);
+    }
+    async get_identity_verifications(arg0: string): Promise<Array<VerificationRef>> {
+        const result = await this.actor.get_identity_verifications(arg0);
+        return result;
     }
     async get_market_snapshot(arg0: string): Promise<MarketSnapshot | null> {
         const result = await this.actor.get_market_snapshot(arg0);
-        return from_candid_opt_n117(result);
+        return from_candid_opt_n158(result);
     }
     async get_project(arg0: string): Promise<Project | null> {
         const result = await this.actor.get_project(arg0);
-        return from_candid_opt_n118(result);
+        return from_candid_opt_n159(result);
+    }
+    async get_wallet(arg0: string): Promise<Wallet | null> {
+        const result = await this.actor.get_wallet(arg0);
+        return from_candid_opt_n160(result);
+    }
+    async get_wallets_by_account(arg0: string): Promise<Array<Wallet>> {
+        const result = await this.actor.get_wallets_by_account(arg0);
+        return from_candid_vec_n161(result);
     }
     async icrc7_atomic_batch_transfers(): Promise<boolean | null> {
         const result = await this.actor.icrc7_atomic_batch_transfers();
-        return from_candid_opt_n119(result);
+        return from_candid_opt_n162(result);
     }
     async icrc7_balance_of(arg0: BalanceOfRequest): Promise<BalanceOfResponse> {
-        const result = await this.actor.icrc7_balance_of(to_candid_BalanceOfRequest_n120(arg0));
+        const result = await this.actor.icrc7_balance_of(to_candid_BalanceOfRequest_n163(arg0));
         return result;
     }
     async icrc7_collection_metadata(): Promise<CollectionMetadataResponse> {
         const result = await this.actor.icrc7_collection_metadata();
-        return from_candid_CollectionMetadataResponse_n124(result);
+        return from_candid_CollectionMetadataResponse_n167(result);
     }
     async icrc7_default_take_value(): Promise<bigint | null> {
         const result = await this.actor.icrc7_default_take_value();
-        return from_candid_opt_n20(result);
+        return from_candid_opt_n54(result);
     }
     async icrc7_description(): Promise<string | null> {
         const result = await this.actor.icrc7_description();
-        return from_candid_opt_n11(result);
+        return from_candid_opt_n9(result);
     }
     async icrc7_logo(): Promise<string | null> {
         const result = await this.actor.icrc7_logo();
-        return from_candid_opt_n11(result);
+        return from_candid_opt_n9(result);
     }
     async icrc7_max_memo_size(): Promise<bigint | null> {
         const result = await this.actor.icrc7_max_memo_size();
-        return from_candid_opt_n20(result);
+        return from_candid_opt_n54(result);
     }
     async icrc7_max_query_batch_size(): Promise<bigint | null> {
         const result = await this.actor.icrc7_max_query_batch_size();
-        return from_candid_opt_n20(result);
+        return from_candid_opt_n54(result);
     }
     async icrc7_max_take_value(): Promise<bigint | null> {
         const result = await this.actor.icrc7_max_take_value();
-        return from_candid_opt_n20(result);
+        return from_candid_opt_n54(result);
     }
     async icrc7_max_update_batch_size(): Promise<bigint | null> {
         const result = await this.actor.icrc7_max_update_batch_size();
-        return from_candid_opt_n20(result);
+        return from_candid_opt_n54(result);
     }
     async icrc7_name(): Promise<string> {
         const result = await this.actor.icrc7_name();
@@ -641,15 +908,15 @@ export class Backend implements backendInterface {
     }
     async icrc7_owner_of(arg0: OwnerOfRequest): Promise<OwnerOfResponse> {
         const result = await this.actor.icrc7_owner_of(arg0);
-        return from_candid_OwnerOfResponse_n131(result);
+        return from_candid_OwnerOfResponse_n174(result);
     }
     async icrc7_permitted_drift(): Promise<bigint | null> {
         const result = await this.actor.icrc7_permitted_drift();
-        return from_candid_opt_n20(result);
+        return from_candid_opt_n54(result);
     }
     async icrc7_supply_cap(): Promise<bigint | null> {
         const result = await this.actor.icrc7_supply_cap();
-        return from_candid_opt_n20(result);
+        return from_candid_opt_n54(result);
     }
     async icrc7_supported_standards(): Promise<SupportedStandardsResponse> {
         const result = await this.actor.icrc7_supported_standards();
@@ -661,14 +928,14 @@ export class Backend implements backendInterface {
     }
     async icrc7_token_metadata(arg0: TokenMetadataRequest): Promise<TokenMetadataResponse> {
         const result = await this.actor.icrc7_token_metadata(arg0);
-        return from_candid_TokenMetadataResponse_n137(result);
+        return from_candid_TokenMetadataResponse_n180(result);
     }
     async icrc7_tokens(arg0: bigint | null, arg1: bigint | null): Promise<Array<bigint>> {
-        const result = await this.actor.icrc7_tokens(to_candid_opt_n142(arg0), to_candid_opt_n142(arg1));
+        const result = await this.actor.icrc7_tokens(to_candid_opt_n185(arg0), to_candid_opt_n185(arg1));
         return result;
     }
-    async icrc7_tokens_of(arg0: Account, arg1: bigint | null, arg2: bigint | null): Promise<Array<bigint>> {
-        const result = await this.actor.icrc7_tokens_of(to_candid_Account_n122(arg0), to_candid_opt_n142(arg1), to_candid_opt_n142(arg2));
+    async icrc7_tokens_of(arg0: Account__1, arg1: bigint | null, arg2: bigint | null): Promise<Array<bigint>> {
+        const result = await this.actor.icrc7_tokens_of(to_candid_Account__1_n165(arg0), to_candid_opt_n185(arg1), to_candid_opt_n185(arg2));
         return result;
     }
     async icrc7_total_supply(): Promise<bigint> {
@@ -676,262 +943,504 @@ export class Backend implements backendInterface {
         return result;
     }
     async icrc7_transfer(arg0: Array<TransferArg>): Promise<Array<TransferResult | null>> {
-        const result = await this.actor.icrc7_transfer(to_candid_vec_n143(arg0));
-        return from_candid_vec_n146(result);
+        const result = await this.actor.icrc7_transfer(to_candid_vec_n186(arg0));
+        return from_candid_vec_n189(result);
     }
     async icrc7_tx_window(): Promise<bigint | null> {
         const result = await this.actor.icrc7_tx_window();
-        return from_candid_opt_n20(result);
+        return from_candid_opt_n54(result);
+    }
+    async issue_certificate(arg0: IssueCertificateRequest): Promise<IssueCertificateResult> {
+        const result = await this.actor.issue_certificate(to_candid_IssueCertificateRequest_n195(arg0));
+        return from_candid_IssueCertificateResult_n197(result);
+    }
+    async link_verification(arg0: string, arg1: string): Promise<Result_3> {
+        const result = await this.actor.link_verification(arg0, arg1);
+        return from_candid_Result_3_n200(result);
     }
     async list_assets(): Promise<Array<Asset>> {
         const result = await this.actor.list_assets();
-        return from_candid_vec_n152(result);
+        return from_candid_vec_n202(result);
     }
     async list_certificates(): Promise<Array<GeramCertificate>> {
         const result = await this.actor.list_certificates();
-        return from_candid_vec_n153(result);
+        return from_candid_vec_n203(result);
     }
     async list_energy_verifications(): Promise<Array<EnergyVerification>> {
         const result = await this.actor.list_energy_verifications();
-        return from_candid_vec_n154(result);
+        return from_candid_vec_n204(result);
     }
     async list_fund_assets(arg0: string | null): Promise<Array<FundAsset>> {
-        const result = await this.actor.list_fund_assets(to_candid_opt_n155(arg0));
-        return from_candid_vec_n156(result);
+        const result = await this.actor.list_fund_assets(to_candid_opt_n35(arg0));
+        return from_candid_vec_n205(result);
     }
     async list_fund_positions(arg0: string | null): Promise<Array<FundPosition>> {
-        const result = await this.actor.list_fund_positions(to_candid_opt_n155(arg0));
+        const result = await this.actor.list_fund_positions(to_candid_opt_n35(arg0));
         return result;
     }
     async list_fund_transactions(arg0: string | null): Promise<Array<FundTransaction>> {
-        const result = await this.actor.list_fund_transactions(to_candid_opt_n155(arg0));
-        return from_candid_vec_n157(result);
+        const result = await this.actor.list_fund_transactions(to_candid_opt_n35(arg0));
+        return from_candid_vec_n206(result);
     }
     async list_hami_funds(): Promise<Array<HamiFund>> {
         const result = await this.actor.list_hami_funds();
-        return from_candid_vec_n158(result);
+        return from_candid_vec_n207(result);
+    }
+    async list_identity_bindings(arg0: string): Promise<Array<PrincipalBinding>> {
+        const result = await this.actor.list_identity_bindings(arg0);
+        return result;
     }
     async list_market_snapshots(): Promise<Array<MarketSnapshot>> {
         const result = await this.actor.list_market_snapshots();
-        return from_candid_vec_n159(result);
+        return from_candid_vec_n208(result);
     }
     async list_projects(): Promise<Array<Project>> {
         const result = await this.actor.list_projects();
-        return from_candid_vec_n160(result);
+        return from_candid_vec_n209(result);
     }
     async record_fund_transaction(arg0: FundTransaction): Promise<FundTransactionResult> {
-        const result = await this.actor.record_fund_transaction(to_candid_FundTransaction_n161(arg0));
-        return from_candid_FundTransactionResult_n165(result);
+        const result = await this.actor.record_fund_transaction(to_candid_FundTransaction_n210(arg0));
+        return from_candid_FundTransactionResult_n214(result);
+    }
+    async suspend_account(arg0: string, arg1: bigint): Promise<Result_2> {
+        const result = await this.actor.suspend_account(arg0, arg1);
+        return from_candid_Result_2_n1(result);
+    }
+    async suspend_identity(arg0: string, arg1: bigint): Promise<Result_1> {
+        const result = await this.actor.suspend_identity(arg0, arg1);
+        return from_candid_Result_1_n16(result);
+    }
+    async suspend_wallet(arg0: string, arg1: bigint): Promise<Result> {
+        const result = await this.actor.suspend_wallet(arg0, arg1);
+        return from_candid_Result_n24(result);
+    }
+    async unbind_principal(arg0: string, arg1: string): Promise<Result_4> {
+        const result = await this.actor.unbind_principal(arg0, arg1);
+        return from_candid_Result_4_n31(result);
+    }
+    async unlink_verification(arg0: string, arg1: string): Promise<Result_3> {
+        const result = await this.actor.unlink_verification(arg0, arg1);
+        return from_candid_Result_3_n200(result);
+    }
+    async update_account(arg0: string, arg1: AccountKind, arg2: string | null, arg3: bigint): Promise<Result_2> {
+        const result = await this.actor.update_account(arg0, to_candid_AccountKind_n33(arg1), to_candid_opt_n35(arg2), arg3);
+        return from_candid_Result_2_n1(result);
+    }
+    async update_identity(arg0: string, arg1: IdentityKind, arg2: string | null, arg3: bigint): Promise<Result_1> {
+        const result = await this.actor.update_identity(arg0, to_candid_IdentityKind_n107(arg1), to_candid_opt_n35(arg2), arg3);
+        return from_candid_Result_1_n16(result);
+    }
+    async update_wallet(arg0: string, arg1: WalletKind, arg2: string | null, arg3: bigint): Promise<Result> {
+        const result = await this.actor.update_wallet(arg0, to_candid_WalletKind_n141(arg1), to_candid_opt_n35(arg2), arg3);
+        return from_candid_Result_n24(result);
     }
     async validate_certificate(arg0: string): Promise<ValidationResult> {
         const result = await this.actor.validate_certificate(arg0);
-        return from_candid_ValidationResult_n167(result);
+        return from_candid_ValidationResult_n216(result);
     }
     async validate_fund_asset(arg0: string): Promise<ValidationResult> {
         const result = await this.actor.validate_fund_asset(arg0);
-        return from_candid_ValidationResult_n167(result);
+        return from_candid_ValidationResult_n216(result);
     }
     async validate_fund_position(arg0: string): Promise<ValidationResult> {
         const result = await this.actor.validate_fund_position(arg0);
-        return from_candid_ValidationResult_n167(result);
+        return from_candid_ValidationResult_n216(result);
     }
     async validate_fund_transaction(arg0: string): Promise<ValidationResult> {
         const result = await this.actor.validate_fund_transaction(arg0);
-        return from_candid_ValidationResult_n167(result);
+        return from_candid_ValidationResult_n216(result);
     }
     async validate_hami_fund(arg0: string): Promise<ValidationResult> {
         const result = await this.actor.validate_hami_fund(arg0);
-        return from_candid_ValidationResult_n167(result);
+        return from_candid_ValidationResult_n216(result);
     }
     async validate_project(arg0: string): Promise<ValidationResult> {
         const result = await this.actor.validate_project(arg0);
-        return from_candid_ValidationResult_n167(result);
+        return from_candid_ValidationResult_n216(result);
     }
 }
-function from_candid_AIModelReference_n68(value: _AIModelReference): AIModelReference {
-    return from_candid_record_n69(value);
+function from_candid_AIModelReference_n102(value: _AIModelReference): AIModelReference {
+    return from_candid_record_n103(value);
 }
-function from_candid_AIStrategyStatus_n71(value: _AIStrategyStatus): AIStrategyStatus {
-    return from_candid_variant_n72(value);
+function from_candid_AIStrategyStatus_n105(value: _AIStrategyStatus): AIStrategyStatus {
+    return from_candid_variant_n106(value);
 }
-function from_candid_Account_n134(value: _Account): Account {
-    return from_candid_record_n135(value);
+function from_candid_AccountKind_n7(value: _AccountKind): AccountKind {
+    return from_candid_variant_n8(value);
 }
-function from_candid_AssetReference_n97(value: _AssetReference): AssetReference {
-    return from_candid_record_n98(value);
-}
-function from_candid_AssetResult_n5(value: _AssetResult): AssetResult {
+function from_candid_AccountStatus_n5(value: _AccountStatus): AccountStatus {
     return from_candid_variant_n6(value);
 }
-function from_candid_AssetStatus_n9(value: _AssetStatus): AssetStatus {
-    return from_candid_variant_n10(value);
+function from_candid_Account__1_n177(value: _Account__1): Account__1 {
+    return from_candid_record_n178(value);
 }
-function from_candid_Asset_n7(value: _Asset): Asset {
-    return from_candid_record_n8(value);
+function from_candid_Account_n3(value: _Account): Account {
+    return from_candid_record_n4(value);
 }
-function from_candid_CertificateResult_n16(value: _CertificateResult): CertificateResult {
-    return from_candid_variant_n17(value);
+function from_candid_AssetReference_n133(value: _AssetReference): AssetReference {
+    return from_candid_record_n134(value);
 }
-function from_candid_CollectionMetadataResponse_n124(value: _CollectionMetadataResponse): CollectionMetadataResponse {
-    return from_candid_vec_n125(value);
+function from_candid_AssetResult_n40(value: _AssetResult): AssetResult {
+    return from_candid_variant_n41(value);
 }
-function from_candid_EnergyVerificationResult_n27(value: _EnergyVerificationResult): EnergyVerificationResult {
-    return from_candid_variant_n28(value);
+function from_candid_AssetStatus_n44(value: _AssetStatus): AssetStatus {
+    return from_candid_variant_n45(value);
 }
-function from_candid_EnergyVerificationStatus_n31(value: _EnergyVerificationStatus): EnergyVerificationStatus {
-    return from_candid_variant_n32(value);
+function from_candid_Asset_n42(value: _Asset): Asset {
+    return from_candid_record_n43(value);
 }
-function from_candid_EnergyVerification_n29(value: _EnergyVerification): EnergyVerification {
-    return from_candid_record_n30(value);
+function from_candid_CertificateResult_n50(value: _CertificateResult): CertificateResult {
+    return from_candid_variant_n51(value);
 }
-function from_candid_FinancialTerms_n101(value: _FinancialTerms): FinancialTerms {
-    return from_candid_record_n102(value);
+function from_candid_CollectionMetadataResponse_n167(value: _CollectionMetadataResponse): CollectionMetadataResponse {
+    return from_candid_vec_n168(value);
 }
-function from_candid_FundAssetResult_n35(value: _FundAssetResult): FundAssetResult {
-    return from_candid_variant_n36(value);
-}
-function from_candid_FundAsset_n37(value: _FundAsset): FundAsset {
-    return from_candid_record_n38(value);
-}
-function from_candid_FundPositionResult_n39(value: _FundPositionResult): FundPositionResult {
-    return from_candid_variant_n40(value);
-}
-function from_candid_FundRiskParameters_n63(value: _FundRiskParameters): FundRiskParameters {
-    return from_candid_record_n64(value);
-}
-function from_candid_FundStatus_n59(value: _FundStatus): FundStatus {
-    return from_candid_variant_n60(value);
-}
-function from_candid_FundStrategy_n65(value: _FundStrategy): FundStrategy {
-    return from_candid_variant_n66(value);
-}
-function from_candid_FundTransactionResult_n165(value: _FundTransactionResult): FundTransactionResult {
-    return from_candid_variant_n166(value);
-}
-function from_candid_FundTransactionType_n113(value: _FundTransactionType): FundTransactionType {
-    return from_candid_variant_n114(value);
-}
-function from_candid_FundTransaction_n111(value: _FundTransaction): FundTransaction {
-    return from_candid_record_n112(value);
-}
-function from_candid_FundType_n61(value: _FundType): FundType {
+function from_candid_EnergyVerificationResult_n61(value: _EnergyVerificationResult): EnergyVerificationResult {
     return from_candid_variant_n62(value);
 }
-function from_candid_GeramCertificate_n18(value: _GeramCertificate): GeramCertificate {
-    return from_candid_record_n19(value);
+function from_candid_EnergyVerificationStatus_n65(value: _EnergyVerificationStatus): EnergyVerificationStatus {
+    return from_candid_variant_n66(value);
 }
-function from_candid_HamiFundResult_n55(value: _HamiFundResult): HamiFundResult {
-    return from_candid_variant_n56(value);
+function from_candid_EnergyVerification_n63(value: _EnergyVerification): EnergyVerification {
+    return from_candid_record_n64(value);
 }
-function from_candid_HamiFund_n57(value: _HamiFund): HamiFund {
-    return from_candid_record_n58(value);
+function from_candid_ErrorCategory_n14(value: _ErrorCategory): ErrorCategory {
+    return from_candid_variant_n15(value);
 }
-function from_candid_Map_n129(value: _Map): Map_ {
-    return from_candid_vec_n125(value);
+function from_candid_ErrorState_n12(value: _ErrorState): ErrorState {
+    return from_candid_variant_n13(value);
 }
-function from_candid_MarketSnapshotResult_n75(value: _MarketSnapshotResult): MarketSnapshotResult {
-    return from_candid_variant_n76(value);
+function from_candid_Error_n10(value: _Error): Error_ {
+    return from_candid_record_n11(value);
 }
-function from_candid_MarketSnapshot_n77(value: _MarketSnapshot): MarketSnapshot {
-    return from_candid_record_n78(value);
+function from_candid_FinancialTerms_n137(value: _FinancialTerms): FinancialTerms {
+    return from_candid_record_n138(value);
 }
-function from_candid_Metadata_n141(value: _Metadata): Metadata {
-    return from_candid_vec_n125(value);
+function from_candid_FundAssetResult_n69(value: _FundAssetResult): FundAssetResult {
+    return from_candid_variant_n70(value);
 }
-function from_candid_OwnerOfResponse_n131(value: _OwnerOfResponse): OwnerOfResponse {
-    return from_candid_vec_n132(value);
+function from_candid_FundAsset_n71(value: _FundAsset): FundAsset {
+    return from_candid_record_n72(value);
 }
-function from_candid_ProjectResult_n91(value: _ProjectResult): ProjectResult {
-    return from_candid_variant_n92(value);
+function from_candid_FundPositionResult_n73(value: _FundPositionResult): FundPositionResult {
+    return from_candid_variant_n74(value);
 }
-function from_candid_ProjectStatus_n95(value: _ProjectStatus): ProjectStatus {
+function from_candid_FundRiskParameters_n97(value: _FundRiskParameters): FundRiskParameters {
+    return from_candid_record_n98(value);
+}
+function from_candid_FundStatus_n93(value: _FundStatus): FundStatus {
+    return from_candid_variant_n94(value);
+}
+function from_candid_FundStrategy_n99(value: _FundStrategy): FundStrategy {
+    return from_candid_variant_n100(value);
+}
+function from_candid_FundTransactionResult_n214(value: _FundTransactionResult): FundTransactionResult {
+    return from_candid_variant_n215(value);
+}
+function from_candid_FundTransactionType_n153(value: _FundTransactionType): FundTransactionType {
+    return from_candid_variant_n154(value);
+}
+function from_candid_FundTransaction_n151(value: _FundTransaction): FundTransaction {
+    return from_candid_record_n152(value);
+}
+function from_candid_FundType_n95(value: _FundType): FundType {
     return from_candid_variant_n96(value);
 }
-function from_candid_ProjectType_n103(value: _ProjectType): ProjectType {
-    return from_candid_variant_n104(value);
+function from_candid_GeramCertificate_n52(value: _GeramCertificate): GeramCertificate {
+    return from_candid_record_n53(value);
 }
-function from_candid_Project_n93(value: _Project): Project {
-    return from_candid_record_n94(value);
+function from_candid_HamiFundResult_n89(value: _HamiFundResult): HamiFundResult {
+    return from_candid_variant_n90(value);
 }
-function from_candid_RiskLevel_n21(value: _RiskLevel): RiskLevel {
-    return from_candid_variant_n22(value);
+function from_candid_HamiFund_n91(value: _HamiFund): HamiFund {
+    return from_candid_record_n92(value);
 }
-function from_candid_TokenMetadataItem_n139(value: _TokenMetadataItem): TokenMetadataItem {
-    return from_candid_opt_n140(value);
+function from_candid_IdentityKind_n22(value: _IdentityKind): IdentityKind {
+    return from_candid_variant_n23(value);
 }
-function from_candid_TokenMetadataResponse_n137(value: _TokenMetadataResponse): TokenMetadataResponse {
-    return from_candid_vec_n138(value);
+function from_candid_IdentityStatus_n20(value: _IdentityStatus): IdentityStatus {
+    return from_candid_variant_n21(value);
 }
-function from_candid_TransferError_n150(value: _TransferError): TransferError {
-    return from_candid_variant_n151(value);
+function from_candid_Identity_n18(value: _Identity): Identity {
+    return from_candid_record_n19(value);
 }
-function from_candid_TransferResult_n148(value: _TransferResult): TransferResult {
-    return from_candid_variant_n149(value);
+function from_candid_IssueCertificateResult_n197(value: _IssueCertificateResult): IssueCertificateResult {
+    return from_candid_variant_n198(value);
 }
-function from_candid_ValidationResult_n167(value: _ValidationResult): ValidationResult {
-    return from_candid_variant_n168(value);
+function from_candid_Map_n172(value: _Map): Map_ {
+    return from_candid_vec_n168(value);
 }
-function from_candid_Valuation_n99(value: _Valuation): Valuation {
-    return from_candid_record_n100(value);
+function from_candid_MarketSnapshotResult_n111(value: _MarketSnapshotResult): MarketSnapshotResult {
+    return from_candid_variant_n112(value);
 }
-function from_candid_Value_n127(value: _Value): Value {
+function from_candid_MarketSnapshot_n113(value: _MarketSnapshot): MarketSnapshot {
+    return from_candid_record_n114(value);
+}
+function from_candid_Metadata_n184(value: _Metadata): Metadata {
+    return from_candid_vec_n168(value);
+}
+function from_candid_OwnerOfResponse_n174(value: _OwnerOfResponse): OwnerOfResponse {
+    return from_candid_vec_n175(value);
+}
+function from_candid_ProjectResult_n127(value: _ProjectResult): ProjectResult {
     return from_candid_variant_n128(value);
 }
-function from_candid_opt_n105(value: [] | [_Asset]): Asset | null {
-    return value.length === 0 ? null : from_candid_Asset_n7(value[0]);
+function from_candid_ProjectStatus_n131(value: _ProjectStatus): ProjectStatus {
+    return from_candid_variant_n132(value);
 }
-function from_candid_opt_n106(value: [] | [_GeramCertificate]): GeramCertificate | null {
-    return value.length === 0 ? null : from_candid_GeramCertificate_n18(value[0]);
+function from_candid_ProjectType_n139(value: _ProjectType): ProjectType {
+    return from_candid_variant_n140(value);
 }
-function from_candid_opt_n107(value: [] | [_EnergyVerification]): EnergyVerification | null {
-    return value.length === 0 ? null : from_candid_EnergyVerification_n29(value[0]);
+function from_candid_Project_n129(value: _Project): Project {
+    return from_candid_record_n130(value);
 }
-function from_candid_opt_n108(value: [] | [_FundAsset]): FundAsset | null {
-    return value.length === 0 ? null : from_candid_FundAsset_n37(value[0]);
+function from_candid_Result_1_n16(value: _Result_1): Result_1 {
+    return from_candid_variant_n17(value);
 }
-function from_candid_opt_n109(value: [] | [_FundPosition]): FundPosition | null {
+function from_candid_Result_2_n1(value: _Result_2): Result_2 {
+    return from_candid_variant_n2(value);
+}
+function from_candid_Result_3_n200(value: _Result_3): Result_3 {
+    return from_candid_variant_n201(value);
+}
+function from_candid_Result_4_n31(value: _Result_4): Result_4 {
+    return from_candid_variant_n32(value);
+}
+function from_candid_Result_n24(value: _Result): Result {
+    return from_candid_variant_n25(value);
+}
+function from_candid_RiskLevel_n55(value: _RiskLevel): RiskLevel {
+    return from_candid_variant_n56(value);
+}
+function from_candid_TokenMetadataItem_n182(value: _TokenMetadataItem): TokenMetadataItem {
+    return from_candid_opt_n183(value);
+}
+function from_candid_TokenMetadataResponse_n180(value: _TokenMetadataResponse): TokenMetadataResponse {
+    return from_candid_vec_n181(value);
+}
+function from_candid_TransferError_n193(value: _TransferError): TransferError {
+    return from_candid_variant_n194(value);
+}
+function from_candid_TransferResult_n191(value: _TransferResult): TransferResult {
+    return from_candid_variant_n192(value);
+}
+function from_candid_ValidationResult_n216(value: _ValidationResult): ValidationResult {
+    return from_candid_variant_n217(value);
+}
+function from_candid_Valuation_n135(value: _Valuation): Valuation {
+    return from_candid_record_n136(value);
+}
+function from_candid_Value_n170(value: _Value): Value {
+    return from_candid_variant_n171(value);
+}
+function from_candid_WalletKind_n29(value: _WalletKind): WalletKind {
+    return from_candid_variant_n30(value);
+}
+function from_candid_WalletStatus_n28(value: _WalletStatus): WalletStatus {
+    return from_candid_variant_n6(value);
+}
+function from_candid_Wallet_n26(value: _Wallet): Wallet {
+    return from_candid_record_n27(value);
+}
+function from_candid_opt_n101(value: [] | [_AIModelReference]): AIModelReference | null {
+    return value.length === 0 ? null : from_candid_AIModelReference_n102(value[0]);
+}
+function from_candid_opt_n104(value: [] | [bigint]): bigint | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n11(value: [] | [string]): string | null {
+function from_candid_opt_n143(value: [] | [_Account]): Account | null {
+    return value.length === 0 ? null : from_candid_Account_n3(value[0]);
+}
+function from_candid_opt_n145(value: [] | [_Asset]): Asset | null {
+    return value.length === 0 ? null : from_candid_Asset_n42(value[0]);
+}
+function from_candid_opt_n146(value: [] | [_GeramCertificate]): GeramCertificate | null {
+    return value.length === 0 ? null : from_candid_GeramCertificate_n52(value[0]);
+}
+function from_candid_opt_n147(value: [] | [_EnergyVerification]): EnergyVerification | null {
+    return value.length === 0 ? null : from_candid_EnergyVerification_n63(value[0]);
+}
+function from_candid_opt_n148(value: [] | [_FundAsset]): FundAsset | null {
+    return value.length === 0 ? null : from_candid_FundAsset_n71(value[0]);
+}
+function from_candid_opt_n149(value: [] | [_FundPosition]): FundPosition | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n110(value: [] | [_FundTransaction]): FundTransaction | null {
-    return value.length === 0 ? null : from_candid_FundTransaction_n111(value[0]);
+function from_candid_opt_n150(value: [] | [_FundTransaction]): FundTransaction | null {
+    return value.length === 0 ? null : from_candid_FundTransaction_n151(value[0]);
 }
-function from_candid_opt_n115(value: [] | [_HamiFund]): HamiFund | null {
-    return value.length === 0 ? null : from_candid_HamiFund_n57(value[0]);
+function from_candid_opt_n155(value: [] | [_HamiFund]): HamiFund | null {
+    return value.length === 0 ? null : from_candid_HamiFund_n91(value[0]);
 }
-function from_candid_opt_n117(value: [] | [_MarketSnapshot]): MarketSnapshot | null {
-    return value.length === 0 ? null : from_candid_MarketSnapshot_n77(value[0]);
+function from_candid_opt_n157(value: [] | [_Identity]): Identity | null {
+    return value.length === 0 ? null : from_candid_Identity_n18(value[0]);
 }
-function from_candid_opt_n118(value: [] | [_Project]): Project | null {
-    return value.length === 0 ? null : from_candid_Project_n93(value[0]);
+function from_candid_opt_n158(value: [] | [_MarketSnapshot]): MarketSnapshot | null {
+    return value.length === 0 ? null : from_candid_MarketSnapshot_n113(value[0]);
 }
-function from_candid_opt_n119(value: [] | [boolean]): boolean | null {
+function from_candid_opt_n159(value: [] | [_Project]): Project | null {
+    return value.length === 0 ? null : from_candid_Project_n129(value[0]);
+}
+function from_candid_opt_n160(value: [] | [_Wallet]): Wallet | null {
+    return value.length === 0 ? null : from_candid_Wallet_n26(value[0]);
+}
+function from_candid_opt_n162(value: [] | [boolean]): boolean | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n133(value: [] | [_Account]): Account | null {
-    return value.length === 0 ? null : from_candid_Account_n134(value[0]);
+function from_candid_opt_n176(value: [] | [_Account__1]): Account__1 | null {
+    return value.length === 0 ? null : from_candid_Account__1_n177(value[0]);
 }
-function from_candid_opt_n136(value: [] | [Uint8Array]): Uint8Array | null {
+function from_candid_opt_n179(value: [] | [Uint8Array]): Uint8Array | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n140(value: [] | [_Metadata]): Metadata | null {
-    return value.length === 0 ? null : from_candid_Metadata_n141(value[0]);
+function from_candid_opt_n183(value: [] | [_Metadata]): Metadata | null {
+    return value.length === 0 ? null : from_candid_Metadata_n184(value[0]);
 }
-function from_candid_opt_n147(value: [] | [_TransferResult]): TransferResult | null {
-    return value.length === 0 ? null : from_candid_TransferResult_n148(value[0]);
+function from_candid_opt_n190(value: [] | [_TransferResult]): TransferResult | null {
+    return value.length === 0 ? null : from_candid_TransferResult_n191(value[0]);
 }
-function from_candid_opt_n20(value: [] | [bigint]): bigint | null {
+function from_candid_opt_n54(value: [] | [bigint]): bigint | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n67(value: [] | [_AIModelReference]): AIModelReference | null {
-    return value.length === 0 ? null : from_candid_AIModelReference_n68(value[0]);
-}
-function from_candid_opt_n70(value: [] | [bigint]): bigint | null {
+function from_candid_opt_n9(value: [] | [string]): string | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_record_n100(value: {
+function from_candid_record_n103(value: {
+    model_version: string;
+    provider: [] | [string];
+    enabled: boolean;
+    model_id: string;
+    endpoint_reference: [] | [string];
+}): {
+    model_version: string;
+    provider?: string;
+    enabled: boolean;
+    model_id: string;
+    endpoint_reference?: string;
+} {
+    return {
+        model_version: value.model_version,
+        provider: record_opt_to_undefined(from_candid_opt_n9(value.provider)),
+        enabled: value.enabled,
+        model_id: value.model_id,
+        endpoint_reference: record_opt_to_undefined(from_candid_opt_n9(value.endpoint_reference))
+    };
+}
+function from_candid_record_n11(value: {
+    code: string;
+    state: _ErrorState;
+    message: string;
+    category: _ErrorCategory;
+    correlation_id: [] | [string];
+    retryable: boolean;
+}): {
+    code: string;
+    state: ErrorState;
+    message: string;
+    category: ErrorCategory;
+    correlation_id?: string;
+    retryable: boolean;
+} {
+    return {
+        code: value.code,
+        state: from_candid_ErrorState_n12(value.state),
+        message: value.message,
+        category: from_candid_ErrorCategory_n14(value.category),
+        correlation_id: record_opt_to_undefined(from_candid_opt_n9(value.correlation_id)),
+        retryable: value.retryable
+    };
+}
+function from_candid_record_n114(value: {
+    supply_level: [] | [bigint];
+    annual_return_bps: [] | [bigint];
+    indicative_value: bigint;
+    valuation_reference: [] | [string];
+    demand_level: [] | [bigint];
+    risk_level: _RiskLevel;
+    valuation_timestamp: bigint;
+    certificate_id: string;
+    maturity_timestamp: bigint;
+    base_value: bigint;
+}): {
+    supply_level?: bigint;
+    annual_return_bps?: bigint;
+    indicative_value: bigint;
+    valuation_reference?: string;
+    demand_level?: bigint;
+    risk_level: RiskLevel;
+    valuation_timestamp: bigint;
+    certificate_id: string;
+    maturity_timestamp: bigint;
+    base_value: bigint;
+} {
+    return {
+        supply_level: record_opt_to_undefined(from_candid_opt_n54(value.supply_level)),
+        annual_return_bps: record_opt_to_undefined(from_candid_opt_n54(value.annual_return_bps)),
+        indicative_value: value.indicative_value,
+        valuation_reference: record_opt_to_undefined(from_candid_opt_n9(value.valuation_reference)),
+        demand_level: record_opt_to_undefined(from_candid_opt_n54(value.demand_level)),
+        risk_level: from_candid_RiskLevel_n55(value.risk_level),
+        valuation_timestamp: value.valuation_timestamp,
+        certificate_id: value.certificate_id,
+        maturity_timestamp: value.maturity_timestamp,
+        base_value: value.base_value
+    };
+}
+function from_candid_record_n130(value: {
+    status: _ProjectStatus;
+    title: string;
+    issuer_id: string;
+    asset: _AssetReference;
+    description: string;
+    valuation: _Valuation;
+    financial_terms: _FinancialTerms;
+    risk_level: _RiskLevel;
+    project_id: string;
+    project_type: _ProjectType;
+}): {
+    status: ProjectStatus;
+    title: string;
+    issuer_id: string;
+    asset: AssetReference;
+    description: string;
+    valuation: Valuation;
+    financial_terms: FinancialTerms;
+    risk_level: RiskLevel;
+    project_id: string;
+    project_type: ProjectType;
+} {
+    return {
+        status: from_candid_ProjectStatus_n131(value.status),
+        title: value.title,
+        issuer_id: value.issuer_id,
+        asset: from_candid_AssetReference_n133(value.asset),
+        description: value.description,
+        valuation: from_candid_Valuation_n135(value.valuation),
+        financial_terms: from_candid_FinancialTerms_n137(value.financial_terms),
+        risk_level: from_candid_RiskLevel_n55(value.risk_level),
+        project_id: value.project_id,
+        project_type: from_candid_ProjectType_n139(value.project_type)
+    };
+}
+function from_candid_record_n134(value: {
+    registry_reference: [] | [string];
+    asset_type: string;
+    description: string;
+    asset_id: string;
+}): {
+    registry_reference?: string;
+    asset_type: string;
+    description: string;
+    asset_id: string;
+} {
+    return {
+        registry_reference: record_opt_to_undefined(from_candid_opt_n9(value.registry_reference)),
+        asset_type: value.asset_type,
+        description: value.description,
+        asset_id: value.asset_id
+    };
+}
+function from_candid_record_n136(value: {
     expert_reference: [] | [string];
     valuation_date: bigint;
     valuation_unit: string;
@@ -945,14 +1454,14 @@ function from_candid_record_n100(value: {
     base_value: bigint;
 } {
     return {
-        expert_reference: record_opt_to_undefined(from_candid_opt_n11(value.expert_reference)),
+        expert_reference: record_opt_to_undefined(from_candid_opt_n9(value.expert_reference)),
         valuation_date: value.valuation_date,
         valuation_unit: value.valuation_unit,
-        methodology: record_opt_to_undefined(from_candid_opt_n11(value.methodology)),
+        methodology: record_opt_to_undefined(from_candid_opt_n9(value.methodology)),
         base_value: value.base_value
     };
 }
-function from_candid_record_n102(value: {
+function from_candid_record_n138(value: {
     annual_return_bps: [] | [bigint];
     face_value: bigint;
     currency: string;
@@ -966,14 +1475,14 @@ function from_candid_record_n102(value: {
     liquidity_guaranteed: boolean;
 } {
     return {
-        annual_return_bps: record_opt_to_undefined(from_candid_opt_n20(value.annual_return_bps)),
+        annual_return_bps: record_opt_to_undefined(from_candid_opt_n54(value.annual_return_bps)),
         face_value: value.face_value,
         currency: value.currency,
         maturity_timestamp: value.maturity_timestamp,
         liquidity_guaranteed: value.liquidity_guaranteed
     };
 }
-function from_candid_record_n112(value: {
+function from_candid_record_n152(value: {
     transaction_id: string;
     transaction_type: _FundTransactionType;
     token_id: [] | [bigint];
@@ -1002,20 +1511,20 @@ function from_candid_record_n112(value: {
 } {
     return {
         transaction_id: value.transaction_id,
-        transaction_type: from_candid_FundTransactionType_n113(value.transaction_type),
-        token_id: record_opt_to_undefined(from_candid_opt_n20(value.token_id)),
+        transaction_type: from_candid_FundTransactionType_n153(value.transaction_type),
+        token_id: record_opt_to_undefined(from_candid_opt_n54(value.token_id)),
         value: value.value,
-        reference: record_opt_to_undefined(from_candid_opt_n11(value.reference)),
+        reference: record_opt_to_undefined(from_candid_opt_n9(value.reference)),
         timestamp: value.timestamp,
         actor_principal: value.actor_principal,
         ai_generated: value.ai_generated,
-        certificate_id: record_opt_to_undefined(from_candid_opt_n11(value.certificate_id)),
-        asset_id: record_opt_to_undefined(from_candid_opt_n11(value.asset_id)),
+        certificate_id: record_opt_to_undefined(from_candid_opt_n9(value.certificate_id)),
+        asset_id: record_opt_to_undefined(from_candid_opt_n9(value.asset_id)),
         fund_id: value.fund_id,
-        position_id: record_opt_to_undefined(from_candid_opt_n11(value.position_id))
+        position_id: record_opt_to_undefined(from_candid_opt_n9(value.position_id))
     };
 }
-function from_candid_record_n116(value: {
+function from_candid_record_n156(value: {
     activeActions: bigint;
     nextCycleActionId: [] | [bigint];
     lastActionReported: [] | [bigint];
@@ -1026,11 +1535,11 @@ function from_candid_record_n116(value: {
 } {
     return {
         activeActions: value.activeActions,
-        nextCycleActionId: record_opt_to_undefined(from_candid_opt_n20(value.nextCycleActionId)),
-        lastActionReported: record_opt_to_undefined(from_candid_opt_n20(value.lastActionReported))
+        nextCycleActionId: record_opt_to_undefined(from_candid_opt_n54(value.nextCycleActionId)),
+        lastActionReported: record_opt_to_undefined(from_candid_opt_n54(value.lastActionReported))
     };
 }
-function from_candid_record_n135(value: {
+function from_candid_record_n178(value: {
     owner: Principal;
     subaccount: [] | [Uint8Array];
 }): {
@@ -1039,10 +1548,139 @@ function from_candid_record_n135(value: {
 } {
     return {
         owner: value.owner,
-        subaccount: record_opt_to_undefined(from_candid_opt_n136(value.subaccount))
+        subaccount: record_opt_to_undefined(from_candid_opt_n179(value.subaccount))
     };
 }
 function from_candid_record_n19(value: {
+    status: _IdentityStatus;
+    updated_at: bigint;
+    kind: _IdentityKind;
+    created_at: bigint;
+    metadata_ref: [] | [string];
+    identity_id: string;
+}): {
+    status: IdentityStatus;
+    updated_at: bigint;
+    kind: IdentityKind;
+    created_at: bigint;
+    metadata_ref?: string;
+    identity_id: string;
+} {
+    return {
+        status: from_candid_IdentityStatus_n20(value.status),
+        updated_at: value.updated_at,
+        kind: from_candid_IdentityKind_n22(value.kind),
+        created_at: value.created_at,
+        metadata_ref: record_opt_to_undefined(from_candid_opt_n9(value.metadata_ref)),
+        identity_id: value.identity_id
+    };
+}
+function from_candid_record_n199(value: {
+    transaction_id: bigint;
+    certificate: _GeramCertificate;
+    token_id: bigint;
+}): {
+    transaction_id: bigint;
+    certificate: GeramCertificate;
+    token_id: bigint;
+} {
+    return {
+        transaction_id: value.transaction_id,
+        certificate: from_candid_GeramCertificate_n52(value.certificate),
+        token_id: value.token_id
+    };
+}
+function from_candid_record_n27(value: {
+    account_id: string;
+    status: _WalletStatus;
+    updated_at: bigint;
+    kind: _WalletKind;
+    created_at: bigint;
+    metadata_ref: [] | [string];
+    wallet_id: string;
+}): {
+    account_id: string;
+    status: WalletStatus;
+    updated_at: bigint;
+    kind: WalletKind;
+    created_at: bigint;
+    metadata_ref?: string;
+    wallet_id: string;
+} {
+    return {
+        account_id: value.account_id,
+        status: from_candid_WalletStatus_n28(value.status),
+        updated_at: value.updated_at,
+        kind: from_candid_WalletKind_n29(value.kind),
+        created_at: value.created_at,
+        metadata_ref: record_opt_to_undefined(from_candid_opt_n9(value.metadata_ref)),
+        wallet_id: value.wallet_id
+    };
+}
+function from_candid_record_n4(value: {
+    account_id: string;
+    status: _AccountStatus;
+    updated_at: bigint;
+    kind: _AccountKind;
+    created_at: bigint;
+    metadata_ref: [] | [string];
+    identity_id: string;
+}): {
+    account_id: string;
+    status: AccountStatus;
+    updated_at: bigint;
+    kind: AccountKind;
+    created_at: bigint;
+    metadata_ref?: string;
+    identity_id: string;
+} {
+    return {
+        account_id: value.account_id,
+        status: from_candid_AccountStatus_n5(value.status),
+        updated_at: value.updated_at,
+        kind: from_candid_AccountKind_n7(value.kind),
+        created_at: value.created_at,
+        metadata_ref: record_opt_to_undefined(from_candid_opt_n9(value.metadata_ref)),
+        identity_id: value.identity_id
+    };
+}
+function from_candid_record_n43(value: {
+    status: _AssetStatus;
+    registry_reference: [] | [string];
+    title: string;
+    asset_type: string;
+    external_reference: [] | [string];
+    description: string;
+    created_at: bigint;
+    metadata_uri: [] | [string];
+    project_id: string;
+    asset_id: string;
+}): {
+    status: AssetStatus;
+    registry_reference?: string;
+    title: string;
+    asset_type: string;
+    external_reference?: string;
+    description: string;
+    created_at: bigint;
+    metadata_uri?: string;
+    project_id: string;
+    asset_id: string;
+} {
+    return {
+        status: from_candid_AssetStatus_n44(value.status),
+        registry_reference: record_opt_to_undefined(from_candid_opt_n9(value.registry_reference)),
+        title: value.title,
+        asset_type: value.asset_type,
+        external_reference: record_opt_to_undefined(from_candid_opt_n9(value.external_reference)),
+        description: value.description,
+        created_at: value.created_at,
+        metadata_uri: record_opt_to_undefined(from_candid_opt_n9(value.metadata_uri)),
+        project_id: value.project_id,
+        asset_id: value.asset_id
+    };
+}
+function from_candid_record_n53(value: {
     qr_reference: [] | [string];
     issuer_id: string;
     annual_return_bps: [] | [bigint];
@@ -1076,15 +1714,15 @@ function from_candid_record_n19(value: {
     physical_certificate_available: boolean;
 } {
     return {
-        qr_reference: record_opt_to_undefined(from_candid_opt_n11(value.qr_reference)),
+        qr_reference: record_opt_to_undefined(from_candid_opt_n9(value.qr_reference)),
         issuer_id: value.issuer_id,
-        annual_return_bps: record_opt_to_undefined(from_candid_opt_n20(value.annual_return_bps)),
-        physical_certificate_hash: record_opt_to_undefined(from_candid_opt_n11(value.physical_certificate_hash)),
+        annual_return_bps: record_opt_to_undefined(from_candid_opt_n54(value.annual_return_bps)),
+        physical_certificate_hash: record_opt_to_undefined(from_candid_opt_n9(value.physical_certificate_hash)),
         token_id: value.token_id,
         face_value: value.face_value,
         initial_holder: value.initial_holder,
         currency: value.currency,
-        risk_level: from_candid_RiskLevel_n21(value.risk_level),
+        risk_level: from_candid_RiskLevel_n55(value.risk_level),
         project_id: value.project_id,
         certificate_id: value.certificate_id,
         issue_timestamp: value.issue_timestamp,
@@ -1093,7 +1731,7 @@ function from_candid_record_n19(value: {
         physical_certificate_available: value.physical_certificate_available
     };
 }
-function from_candid_record_n30(value: {
+function from_candid_record_n64(value: {
     status: _EnergyVerificationStatus;
     heater_model: [] | [string];
     measurement_period_start: bigint;
@@ -1131,26 +1769,26 @@ function from_candid_record_n30(value: {
     verification_id: string;
 } {
     return {
-        status: from_candid_EnergyVerificationStatus_n31(value.status),
-        heater_model: record_opt_to_undefined(from_candid_opt_n11(value.heater_model)),
+        status: from_candid_EnergyVerificationStatus_n65(value.status),
+        heater_model: record_opt_to_undefined(from_candid_opt_n9(value.heater_model)),
         measurement_period_start: value.measurement_period_start,
         energy_saved_m3: value.energy_saved_m3,
         verification_method: value.verification_method,
         baseline_energy_m3: value.baseline_energy_m3,
         energy_saved_percent: value.energy_saved_percent,
         verifier_id: value.verifier_id,
-        verification_reference: record_opt_to_undefined(from_candid_opt_n11(value.verification_reference)),
+        verification_reference: record_opt_to_undefined(from_candid_opt_n9(value.verification_reference)),
         project_id: value.project_id,
-        certificate_id: record_opt_to_undefined(from_candid_opt_n11(value.certificate_id)),
+        certificate_id: record_opt_to_undefined(from_candid_opt_n9(value.certificate_id)),
         asset_id: value.asset_id,
-        heater_id: record_opt_to_undefined(from_candid_opt_n11(value.heater_id)),
+        heater_id: record_opt_to_undefined(from_candid_opt_n9(value.heater_id)),
         measurement_period_end: value.measurement_period_end,
         measured_energy_m3: value.measured_energy_m3,
         verification_timestamp: value.verification_timestamp,
         verification_id: value.verification_id
     };
 }
-function from_candid_record_n38(value: {
+function from_candid_record_n72(value: {
     active: boolean;
     asset_type: string;
     token_id: [] | [bigint];
@@ -1180,19 +1818,19 @@ function from_candid_record_n38(value: {
     return {
         active: value.active,
         asset_type: value.asset_type,
-        token_id: record_opt_to_undefined(from_candid_opt_n20(value.token_id)),
-        risk_level: from_candid_RiskLevel_n21(value.risk_level),
+        token_id: record_opt_to_undefined(from_candid_opt_n54(value.token_id)),
+        risk_level: from_candid_RiskLevel_n55(value.risk_level),
         quantity: value.quantity,
         valuation_timestamp: value.valuation_timestamp,
-        project_id: record_opt_to_undefined(from_candid_opt_n11(value.project_id)),
-        certificate_id: record_opt_to_undefined(from_candid_opt_n11(value.certificate_id)),
+        project_id: record_opt_to_undefined(from_candid_opt_n9(value.project_id)),
+        certificate_id: record_opt_to_undefined(from_candid_opt_n9(value.certificate_id)),
         asset_id: value.asset_id,
         current_value: value.current_value,
         acquisition_value: value.acquisition_value,
         fund_id: value.fund_id
     };
 }
-function from_candid_record_n58(value: {
+function from_candid_record_n92(value: {
     status: _FundStatus;
     fund_type: _FundType;
     title: string;
@@ -1240,31 +1878,31 @@ function from_candid_record_n58(value: {
     fund_id: string;
 } {
     return {
-        status: from_candid_FundStatus_n59(value.status),
-        fund_type: from_candid_FundType_n61(value.fund_type),
+        status: from_candid_FundStatus_n93(value.status),
+        fund_type: from_candid_FundType_n95(value.fund_type),
         title: value.title,
-        risk_parameters: from_candid_FundRiskParameters_n63(value.risk_parameters),
+        risk_parameters: from_candid_FundRiskParameters_n97(value.risk_parameters),
         decentralized: value.decentralized,
         base_currency: value.base_currency,
-        strategy: from_candid_FundStrategy_n65(value.strategy),
+        strategy: from_candid_FundStrategy_n99(value.strategy),
         name: value.name,
         allowed_geram: value.allowed_geram,
         description: value.description,
         created_at: value.created_at,
-        metadata_uri: record_opt_to_undefined(from_candid_opt_n11(value.metadata_uri)),
-        minimum_position_value: record_opt_to_undefined(from_candid_opt_n20(value.minimum_position_value)),
+        metadata_uri: record_opt_to_undefined(from_candid_opt_n9(value.metadata_uri)),
+        minimum_position_value: record_opt_to_undefined(from_candid_opt_n54(value.minimum_position_value)),
         target_value: value.target_value,
         allowed_tokens: value.allowed_tokens,
-        ai_model: record_opt_to_undefined(from_candid_opt_n67(value.ai_model)),
+        ai_model: record_opt_to_undefined(from_candid_opt_n101(value.ai_model)),
         manager_id: value.manager_id,
-        activation_timestamp: record_opt_to_undefined(from_candid_opt_n70(value.activation_timestamp)),
-        maturity_timestamp: record_opt_to_undefined(from_candid_opt_n70(value.maturity_timestamp)),
-        ai_status: from_candid_AIStrategyStatus_n71(value.ai_status),
-        smart_contract_reference: record_opt_to_undefined(from_candid_opt_n11(value.smart_contract_reference)),
+        activation_timestamp: record_opt_to_undefined(from_candid_opt_n104(value.activation_timestamp)),
+        maturity_timestamp: record_opt_to_undefined(from_candid_opt_n104(value.maturity_timestamp)),
+        ai_status: from_candid_AIStrategyStatus_n105(value.ai_status),
+        smart_contract_reference: record_opt_to_undefined(from_candid_opt_n9(value.smart_contract_reference)),
         fund_id: value.fund_id
     };
 }
-function from_candid_record_n64(value: {
+function from_candid_record_n98(value: {
     min_liquidity_bps: bigint;
     max_asset_weight_bps: bigint;
     max_single_project_weight_bps: bigint;
@@ -1281,175 +1919,103 @@ function from_candid_record_n64(value: {
         min_liquidity_bps: value.min_liquidity_bps,
         max_asset_weight_bps: value.max_asset_weight_bps,
         max_single_project_weight_bps: value.max_single_project_weight_bps,
-        max_risk_level: from_candid_RiskLevel_n21(value.max_risk_level),
+        max_risk_level: from_candid_RiskLevel_n55(value.max_risk_level),
         max_drawdown_bps: value.max_drawdown_bps
     };
 }
-function from_candid_record_n69(value: {
-    model_version: string;
-    provider: [] | [string];
-    enabled: boolean;
-    model_id: string;
-    endpoint_reference: [] | [string];
-}): {
-    model_version: string;
-    provider?: string;
-    enabled: boolean;
-    model_id: string;
-    endpoint_reference?: string;
-} {
-    return {
-        model_version: value.model_version,
-        provider: record_opt_to_undefined(from_candid_opt_n11(value.provider)),
-        enabled: value.enabled,
-        model_id: value.model_id,
-        endpoint_reference: record_opt_to_undefined(from_candid_opt_n11(value.endpoint_reference))
-    };
-}
-function from_candid_record_n78(value: {
-    supply_level: [] | [bigint];
-    annual_return_bps: [] | [bigint];
-    indicative_value: bigint;
-    valuation_reference: [] | [string];
-    demand_level: [] | [bigint];
-    risk_level: _RiskLevel;
-    valuation_timestamp: bigint;
-    certificate_id: string;
-    maturity_timestamp: bigint;
-    base_value: bigint;
-}): {
-    supply_level?: bigint;
-    annual_return_bps?: bigint;
-    indicative_value: bigint;
-    valuation_reference?: string;
-    demand_level?: bigint;
-    risk_level: RiskLevel;
-    valuation_timestamp: bigint;
-    certificate_id: string;
-    maturity_timestamp: bigint;
-    base_value: bigint;
-} {
-    return {
-        supply_level: record_opt_to_undefined(from_candid_opt_n20(value.supply_level)),
-        annual_return_bps: record_opt_to_undefined(from_candid_opt_n20(value.annual_return_bps)),
-        indicative_value: value.indicative_value,
-        valuation_reference: record_opt_to_undefined(from_candid_opt_n11(value.valuation_reference)),
-        demand_level: record_opt_to_undefined(from_candid_opt_n20(value.demand_level)),
-        risk_level: from_candid_RiskLevel_n21(value.risk_level),
-        valuation_timestamp: value.valuation_timestamp,
-        certificate_id: value.certificate_id,
-        maturity_timestamp: value.maturity_timestamp,
-        base_value: value.base_value
-    };
-}
-function from_candid_record_n8(value: {
-    status: _AssetStatus;
-    registry_reference: [] | [string];
-    title: string;
-    asset_type: string;
-    external_reference: [] | [string];
-    description: string;
-    created_at: bigint;
-    metadata_uri: [] | [string];
-    project_id: string;
-    asset_id: string;
-}): {
-    status: AssetStatus;
-    registry_reference?: string;
-    title: string;
-    asset_type: string;
-    external_reference?: string;
-    description: string;
-    created_at: bigint;
-    metadata_uri?: string;
-    project_id: string;
-    asset_id: string;
-} {
-    return {
-        status: from_candid_AssetStatus_n9(value.status),
-        registry_reference: record_opt_to_undefined(from_candid_opt_n11(value.registry_reference)),
-        title: value.title,
-        asset_type: value.asset_type,
-        external_reference: record_opt_to_undefined(from_candid_opt_n11(value.external_reference)),
-        description: value.description,
-        created_at: value.created_at,
-        metadata_uri: record_opt_to_undefined(from_candid_opt_n11(value.metadata_uri)),
-        project_id: value.project_id,
-        asset_id: value.asset_id
-    };
-}
-function from_candid_record_n94(value: {
-    status: _ProjectStatus;
-    title: string;
-    issuer_id: string;
-    asset: _AssetReference;
-    description: string;
-    valuation: _Valuation;
-    financial_terms: _FinancialTerms;
-    risk_level: _RiskLevel;
-    project_id: string;
-    project_type: _ProjectType;
-}): {
-    status: ProjectStatus;
-    title: string;
-    issuer_id: string;
-    asset: AssetReference;
-    description: string;
-    valuation: Valuation;
-    financial_terms: FinancialTerms;
-    risk_level: RiskLevel;
-    project_id: string;
-    project_type: ProjectType;
-} {
-    return {
-        status: from_candid_ProjectStatus_n95(value.status),
-        title: value.title,
-        issuer_id: value.issuer_id,
-        asset: from_candid_AssetReference_n97(value.asset),
-        description: value.description,
-        valuation: from_candid_Valuation_n99(value.valuation),
-        financial_terms: from_candid_FinancialTerms_n101(value.financial_terms),
-        risk_level: from_candid_RiskLevel_n21(value.risk_level),
-        project_id: value.project_id,
-        project_type: from_candid_ProjectType_n103(value.project_type)
-    };
-}
-function from_candid_record_n98(value: {
-    registry_reference: [] | [string];
-    asset_type: string;
-    description: string;
-    asset_id: string;
-}): {
-    registry_reference?: string;
-    asset_type: string;
-    description: string;
-    asset_id: string;
-} {
-    return {
-        registry_reference: record_opt_to_undefined(from_candid_opt_n11(value.registry_reference)),
-        asset_type: value.asset_type,
-        description: value.description,
-        asset_id: value.asset_id
-    };
-}
-function from_candid_tuple_n126(value: [string, _Value]): [string, Value] {
+function from_candid_tuple_n169(value: [string, _Value]): [string, Value] {
     return [
         value[0],
-        from_candid_Value_n127(value[1])
+        from_candid_Value_n170(value[1])
     ];
 }
-function from_candid_variant_n10(value: {
-    Inactive: null;
+function from_candid_variant_n100(value: {
+    MultiStrategy: null;
 } | {
+    Hold: null;
+} | {
+    Collateral: null;
+} | {
+    Trade: null;
+} | {
+    Income: null;
+} | {
+    Liquidity: null;
+}): FundStrategy {
+    return "MultiStrategy" in value ? FundStrategy.MultiStrategy : "Hold" in value ? FundStrategy.Hold : "Collateral" in value ? FundStrategy.Collateral : "Trade" in value ? FundStrategy.Trade : "Income" in value ? FundStrategy.Income : "Liquidity" in value ? FundStrategy.Liquidity : value;
+}
+function from_candid_variant_n106(value: {
+    Disabled: null;
+} | {
+    Advisory: null;
+} | {
+    Automated: null;
+} | {
+    Assisted: null;
+}): AIStrategyStatus {
+    return "Disabled" in value ? AIStrategyStatus.Disabled : "Advisory" in value ? AIStrategyStatus.Advisory : "Automated" in value ? AIStrategyStatus.Automated : "Assisted" in value ? AIStrategyStatus.Assisted : value;
+}
+function from_candid_variant_n112(value: {
+    ok: _MarketSnapshot;
+} | {
+    err: string;
+}): {
+    __kind__: "ok";
+    ok: MarketSnapshot;
+} | {
+    __kind__: "err";
+    err: string;
+} {
+    return "ok" in value ? {
+        __kind__: "ok",
+        ok: from_candid_MarketSnapshot_n113(value.ok)
+    } : "err" in value ? {
+        __kind__: "err",
+        err: value.err
+    } : value;
+}
+function from_candid_variant_n128(value: {
+    ok: _Project;
+} | {
+    err: string;
+}): {
+    __kind__: "ok";
+    ok: Project;
+} | {
+    __kind__: "err";
+    err: string;
+} {
+    return "ok" in value ? {
+        __kind__: "ok",
+        ok: from_candid_Project_n129(value.ok)
+    } : "err" in value ? {
+        __kind__: "err",
+        err: value.err
+    } : value;
+}
+function from_candid_variant_n13(value: {
+    Failed: null;
+} | {
+    Unknown: null;
+}): ErrorState {
+    return "Failed" in value ? ErrorState.Failed : "Unknown" in value ? ErrorState.Unknown : value;
+}
+function from_candid_variant_n132(value: {
     Active: null;
+} | {
+    Matured: null;
+} | {
+    Approved: null;
+} | {
+    Suspended: null;
 } | {
     Draft: null;
 } | {
-    Retired: null;
-}): AssetStatus {
-    return "Inactive" in value ? AssetStatus.Inactive : "Active" in value ? AssetStatus.Active : "Draft" in value ? AssetStatus.Draft : "Retired" in value ? AssetStatus.Retired : value;
+    Completed: null;
+}): ProjectStatus {
+    return "Active" in value ? ProjectStatus.Active : "Matured" in value ? ProjectStatus.Matured : "Approved" in value ? ProjectStatus.Approved : "Suspended" in value ? ProjectStatus.Suspended : "Draft" in value ? ProjectStatus.Draft : "Completed" in value ? ProjectStatus.Completed : value;
 }
-function from_candid_variant_n104(value: {
+function from_candid_variant_n140(value: {
     Production: null;
 } | {
     Energy: null;
@@ -1464,7 +2030,30 @@ function from_candid_variant_n104(value: {
 }): ProjectType {
     return "Production" in value ? ProjectType.Production : "Energy" in value ? ProjectType.Energy : "Infrastructure" in value ? ProjectType.Infrastructure : "Logistics" in value ? ProjectType.Logistics : "Housing" in value ? ProjectType.Housing : "Other" in value ? ProjectType.Other : value;
 }
-function from_candid_variant_n114(value: {
+function from_candid_variant_n15(value: {
+    RequiredField: null;
+} | {
+    BusinessRule: null;
+} | {
+    System: null;
+} | {
+    Authorization: null;
+} | {
+    NotFound: null;
+} | {
+    Identity: null;
+} | {
+    External: null;
+} | {
+    Validation: null;
+} | {
+    Reference: null;
+} | {
+    Conflict: null;
+}): ErrorCategory {
+    return "RequiredField" in value ? ErrorCategory.RequiredField : "BusinessRule" in value ? ErrorCategory.BusinessRule : "System" in value ? ErrorCategory.System : "Authorization" in value ? ErrorCategory.Authorization : "NotFound" in value ? ErrorCategory.NotFound : "Identity" in value ? ErrorCategory.Identity : "External" in value ? ErrorCategory.External : "Validation" in value ? ErrorCategory.Validation : "Reference" in value ? ErrorCategory.Reference : "Conflict" in value ? ErrorCategory.Conflict : value;
+}
+function from_candid_variant_n154(value: {
     Fee: null;
 } | {
     Deposit: null;
@@ -1483,7 +2072,26 @@ function from_candid_variant_n114(value: {
 }): FundTransactionType {
     return "Fee" in value ? FundTransactionType.Fee : "Deposit" in value ? FundTransactionType.Deposit : "Rebalance" in value ? FundTransactionType.Rebalance : "AssetSell" in value ? FundTransactionType.AssetSell : "Withdrawal" in value ? FundTransactionType.Withdrawal : "AssetAcquire" in value ? FundTransactionType.AssetAcquire : "Distribution" in value ? FundTransactionType.Distribution : "Adjustment" in value ? FundTransactionType.Adjustment : value;
 }
-function from_candid_variant_n128(value: {
+function from_candid_variant_n17(value: {
+    ok: _Identity;
+} | {
+    err: _Error;
+}): {
+    __kind__: "ok";
+    ok: Identity;
+} | {
+    __kind__: "err";
+    err: Error_;
+} {
+    return "ok" in value ? {
+        __kind__: "ok",
+        ok: from_candid_Identity_n18(value.ok)
+    } : "err" in value ? {
+        __kind__: "err",
+        err: from_candid_Error_n10(value.err)
+    } : value;
+}
+function from_candid_variant_n171(value: {
     Int: bigint;
 } | {
     Map: _Map;
@@ -1519,7 +2127,7 @@ function from_candid_variant_n128(value: {
         Int: value.Int
     } : "Map" in value ? {
         __kind__: "Map",
-        Map: from_candid_Map_n129(value.Map)
+        Map: from_candid_Map_n172(value.Map)
     } : "Nat" in value ? {
         __kind__: "Nat",
         Nat: value.Nat
@@ -1531,10 +2139,10 @@ function from_candid_variant_n128(value: {
         Text: value.Text
     } : "Array" in value ? {
         __kind__: "Array",
-        Array: from_candid_vec_n130(value.Array)
+        Array: from_candid_vec_n173(value.Array)
     } : value;
 }
-function from_candid_variant_n149(value: {
+function from_candid_variant_n192(value: {
     Ok: bigint;
 } | {
     Err: _TransferError;
@@ -1550,10 +2158,10 @@ function from_candid_variant_n149(value: {
         Ok: value.Ok
     } : "Err" in value ? {
         __kind__: "Err",
-        Err: from_candid_TransferError_n150(value.Err)
+        Err: from_candid_TransferError_n193(value.Err)
     } : value;
 }
-function from_candid_variant_n151(value: {
+function from_candid_variant_n194(value: {
     GenericError: {
         message: string;
         error_code: bigint;
@@ -1640,7 +2248,83 @@ function from_candid_variant_n151(value: {
         TooOld: value.TooOld
     } : value;
 }
-function from_candid_variant_n166(value: {
+function from_candid_variant_n198(value: {
+    ok: {
+        transaction_id: bigint;
+        certificate: _GeramCertificate;
+        token_id: bigint;
+    };
+} | {
+    err: string;
+}): {
+    __kind__: "ok";
+    ok: {
+        transaction_id: bigint;
+        certificate: GeramCertificate;
+        token_id: bigint;
+    };
+} | {
+    __kind__: "err";
+    err: string;
+} {
+    return "ok" in value ? {
+        __kind__: "ok",
+        ok: from_candid_record_n199(value.ok)
+    } : "err" in value ? {
+        __kind__: "err",
+        err: value.err
+    } : value;
+}
+function from_candid_variant_n2(value: {
+    ok: _Account;
+} | {
+    err: _Error;
+}): {
+    __kind__: "ok";
+    ok: Account;
+} | {
+    __kind__: "err";
+    err: Error_;
+} {
+    return "ok" in value ? {
+        __kind__: "ok",
+        ok: from_candid_Account_n3(value.ok)
+    } : "err" in value ? {
+        __kind__: "err",
+        err: from_candid_Error_n10(value.err)
+    } : value;
+}
+function from_candid_variant_n201(value: {
+    ok: _VerificationRef;
+} | {
+    err: _Error;
+}): {
+    __kind__: "ok";
+    ok: VerificationRef;
+} | {
+    __kind__: "err";
+    err: Error_;
+} {
+    return "ok" in value ? {
+        __kind__: "ok",
+        ok: value.ok
+    } : "err" in value ? {
+        __kind__: "err",
+        err: from_candid_Error_n10(value.err)
+    } : value;
+}
+function from_candid_variant_n21(value: {
+    Active: null;
+} | {
+    Suspended: null;
+} | {
+    Archived: null;
+} | {
+    Pending: null;
+}): IdentityStatus {
+    return "Active" in value ? IdentityStatus.Active : "Suspended" in value ? IdentityStatus.Suspended : "Archived" in value ? IdentityStatus.Archived : "Pending" in value ? IdentityStatus.Pending : value;
+}
+function from_candid_variant_n215(value: {
     ok: _FundTransaction;
 } | {
     err: string;
@@ -1653,13 +2337,13 @@ function from_candid_variant_n166(value: {
 } {
     return "ok" in value ? {
         __kind__: "ok",
-        ok: from_candid_FundTransaction_n111(value.ok)
+        ok: from_candid_FundTransaction_n151(value.ok)
     } : "err" in value ? {
         __kind__: "err",
         err: value.err
     } : value;
 }
-function from_candid_variant_n168(value: {
+function from_candid_variant_n217(value: {
     ok: string;
 } | {
     err: string;
@@ -1678,7 +2362,99 @@ function from_candid_variant_n168(value: {
         err: value.err
     } : value;
 }
-function from_candid_variant_n17(value: {
+function from_candid_variant_n23(value: {
+    Institution: null;
+} | {
+    Organization: null;
+} | {
+    Individual: null;
+} | {
+    Other: null;
+}): IdentityKind {
+    return "Institution" in value ? IdentityKind.Institution : "Organization" in value ? IdentityKind.Organization : "Individual" in value ? IdentityKind.Individual : "Other" in value ? IdentityKind.Other : value;
+}
+function from_candid_variant_n25(value: {
+    ok: _Wallet;
+} | {
+    err: _Error;
+}): {
+    __kind__: "ok";
+    ok: Wallet;
+} | {
+    __kind__: "err";
+    err: Error_;
+} {
+    return "ok" in value ? {
+        __kind__: "ok",
+        ok: from_candid_Wallet_n26(value.ok)
+    } : "err" in value ? {
+        __kind__: "err",
+        err: from_candid_Error_n10(value.err)
+    } : value;
+}
+function from_candid_variant_n30(value: {
+    Personal: null;
+} | {
+    Organization: null;
+} | {
+    Custodial: null;
+} | {
+    Other: null;
+} | {
+    Settlement: null;
+}): WalletKind {
+    return "Personal" in value ? WalletKind.Personal : "Organization" in value ? WalletKind.Organization : "Custodial" in value ? WalletKind.Custodial : "Other" in value ? WalletKind.Other : "Settlement" in value ? WalletKind.Settlement : value;
+}
+function from_candid_variant_n32(value: {
+    ok: _PrincipalBinding;
+} | {
+    err: _Error;
+}): {
+    __kind__: "ok";
+    ok: PrincipalBinding;
+} | {
+    __kind__: "err";
+    err: Error_;
+} {
+    return "ok" in value ? {
+        __kind__: "ok",
+        ok: value.ok
+    } : "err" in value ? {
+        __kind__: "err",
+        err: from_candid_Error_n10(value.err)
+    } : value;
+}
+function from_candid_variant_n41(value: {
+    ok: _Asset;
+} | {
+    err: string;
+}): {
+    __kind__: "ok";
+    ok: Asset;
+} | {
+    __kind__: "err";
+    err: string;
+} {
+    return "ok" in value ? {
+        __kind__: "ok",
+        ok: from_candid_Asset_n42(value.ok)
+    } : "err" in value ? {
+        __kind__: "err",
+        err: value.err
+    } : value;
+}
+function from_candid_variant_n45(value: {
+    Inactive: null;
+} | {
+    Active: null;
+} | {
+    Draft: null;
+} | {
+    Retired: null;
+}): AssetStatus {
+    return "Inactive" in value ? AssetStatus.Inactive : "Active" in value ? AssetStatus.Active : "Draft" in value ? AssetStatus.Draft : "Retired" in value ? AssetStatus.Retired : value;
+}
+function from_candid_variant_n51(value: {
     ok: _GeramCertificate;
 } | {
     err: string;
@@ -1691,13 +2467,13 @@ function from_candid_variant_n17(value: {
 } {
     return "ok" in value ? {
         __kind__: "ok",
-        ok: from_candid_GeramCertificate_n18(value.ok)
+        ok: from_candid_GeramCertificate_n52(value.ok)
     } : "err" in value ? {
         __kind__: "err",
         err: value.err
     } : value;
 }
-function from_candid_variant_n22(value: {
+function from_candid_variant_n56(value: {
     Low: null;
 } | {
     High: null;
@@ -1706,7 +2482,20 @@ function from_candid_variant_n22(value: {
 }): RiskLevel {
     return "Low" in value ? RiskLevel.Low : "High" in value ? RiskLevel.High : "Medium" in value ? RiskLevel.Medium : value;
 }
-function from_candid_variant_n28(value: {
+function from_candid_variant_n6(value: {
+    Closed: null;
+} | {
+    Active: null;
+} | {
+    Suspended: null;
+} | {
+    Archived: null;
+} | {
+    Pending: null;
+}): AccountStatus {
+    return "Closed" in value ? AccountStatus.Closed : "Active" in value ? AccountStatus.Active : "Suspended" in value ? AccountStatus.Suspended : "Archived" in value ? AccountStatus.Archived : "Pending" in value ? AccountStatus.Pending : value;
+}
+function from_candid_variant_n62(value: {
     ok: _EnergyVerification;
 } | {
     err: string;
@@ -1719,13 +2508,13 @@ function from_candid_variant_n28(value: {
 } {
     return "ok" in value ? {
         __kind__: "ok",
-        ok: from_candid_EnergyVerification_n29(value.ok)
+        ok: from_candid_EnergyVerification_n63(value.ok)
     } : "err" in value ? {
         __kind__: "err",
         err: value.err
     } : value;
 }
-function from_candid_variant_n32(value: {
+function from_candid_variant_n66(value: {
     Draft: null;
 } | {
     Rejected: null;
@@ -1738,7 +2527,7 @@ function from_candid_variant_n32(value: {
 }): EnergyVerificationStatus {
     return "Draft" in value ? EnergyVerificationStatus.Draft : "Rejected" in value ? EnergyVerificationStatus.Rejected : "Verified" in value ? EnergyVerificationStatus.Verified : "Expired" in value ? EnergyVerificationStatus.Expired : "Pending" in value ? EnergyVerificationStatus.Pending : value;
 }
-function from_candid_variant_n36(value: {
+function from_candid_variant_n70(value: {
     ok: _FundAsset;
 } | {
     err: string;
@@ -1751,13 +2540,13 @@ function from_candid_variant_n36(value: {
 } {
     return "ok" in value ? {
         __kind__: "ok",
-        ok: from_candid_FundAsset_n37(value.ok)
+        ok: from_candid_FundAsset_n71(value.ok)
     } : "err" in value ? {
         __kind__: "err",
         err: value.err
     } : value;
 }
-function from_candid_variant_n40(value: {
+function from_candid_variant_n74(value: {
     ok: _FundPosition;
 } | {
     err: string;
@@ -1776,7 +2565,22 @@ function from_candid_variant_n40(value: {
         err: value.err
     } : value;
 }
-function from_candid_variant_n56(value: {
+function from_candid_variant_n8(value: {
+    Institution: null;
+} | {
+    Personal: null;
+} | {
+    Organization: null;
+} | {
+    Custodial: null;
+} | {
+    Other: null;
+} | {
+    Settlement: null;
+}): AccountKind {
+    return "Institution" in value ? AccountKind.Institution : "Personal" in value ? AccountKind.Personal : "Organization" in value ? AccountKind.Organization : "Custodial" in value ? AccountKind.Custodial : "Other" in value ? AccountKind.Other : "Settlement" in value ? AccountKind.Settlement : value;
+}
+function from_candid_variant_n90(value: {
     ok: _HamiFund;
 } | {
     err: string;
@@ -1789,32 +2593,13 @@ function from_candid_variant_n56(value: {
 } {
     return "ok" in value ? {
         __kind__: "ok",
-        ok: from_candid_HamiFund_n57(value.ok)
+        ok: from_candid_HamiFund_n91(value.ok)
     } : "err" in value ? {
         __kind__: "err",
         err: value.err
     } : value;
 }
-function from_candid_variant_n6(value: {
-    ok: _Asset;
-} | {
-    err: string;
-}): {
-    __kind__: "ok";
-    ok: Asset;
-} | {
-    __kind__: "err";
-    err: string;
-} {
-    return "ok" in value ? {
-        __kind__: "ok",
-        ok: from_candid_Asset_n7(value.ok)
-    } : "err" in value ? {
-        __kind__: "err",
-        err: value.err
-    } : value;
-}
-function from_candid_variant_n60(value: {
+function from_candid_variant_n94(value: {
     Paused: null;
 } | {
     Closed: null;
@@ -1827,7 +2612,7 @@ function from_candid_variant_n60(value: {
 }): FundStatus {
     return "Paused" in value ? FundStatus.Paused : "Closed" in value ? FundStatus.Closed : "Active" in value ? FundStatus.Active : "Matured" in value ? FundStatus.Matured : "Draft" in value ? FundStatus.Draft : value;
 }
-function from_candid_variant_n62(value: {
+function from_candid_variant_n96(value: {
     Production: null;
 } | {
     Energy: null;
@@ -1846,209 +2631,280 @@ function from_candid_variant_n62(value: {
 }): FundType {
     return "Production" in value ? FundType.Production : "Energy" in value ? FundType.Energy : "MultiSector" in value ? FundType.MultiSector : "Infrastructure" in value ? FundType.Infrastructure : "Logistics" in value ? FundType.Logistics : "Tourism" in value ? FundType.Tourism : "Housing" in value ? FundType.Housing : "Other" in value ? FundType.Other : value;
 }
-function from_candid_variant_n66(value: {
-    MultiStrategy: null;
-} | {
-    Hold: null;
-} | {
-    Collateral: null;
-} | {
-    Trade: null;
-} | {
-    Income: null;
-} | {
-    Liquidity: null;
-}): FundStrategy {
-    return "MultiStrategy" in value ? FundStrategy.MultiStrategy : "Hold" in value ? FundStrategy.Hold : "Collateral" in value ? FundStrategy.Collateral : "Trade" in value ? FundStrategy.Trade : "Income" in value ? FundStrategy.Income : "Liquidity" in value ? FundStrategy.Liquidity : value;
+function from_candid_vec_n144(value: Array<_Account>): Array<Account> {
+    return value.map((x)=>from_candid_Account_n3(x));
 }
-function from_candid_variant_n72(value: {
-    Disabled: null;
-} | {
-    Advisory: null;
-} | {
-    Automated: null;
-} | {
-    Assisted: null;
-}): AIStrategyStatus {
-    return "Disabled" in value ? AIStrategyStatus.Disabled : "Advisory" in value ? AIStrategyStatus.Advisory : "Automated" in value ? AIStrategyStatus.Automated : "Assisted" in value ? AIStrategyStatus.Assisted : value;
+function from_candid_vec_n161(value: Array<_Wallet>): Array<Wallet> {
+    return value.map((x)=>from_candid_Wallet_n26(x));
 }
-function from_candid_variant_n76(value: {
-    ok: _MarketSnapshot;
-} | {
-    err: string;
-}): {
-    __kind__: "ok";
-    ok: MarketSnapshot;
-} | {
-    __kind__: "err";
-    err: string;
-} {
-    return "ok" in value ? {
-        __kind__: "ok",
-        ok: from_candid_MarketSnapshot_n77(value.ok)
-    } : "err" in value ? {
-        __kind__: "err",
-        err: value.err
-    } : value;
+function from_candid_vec_n168(value: Array<[string, _Value]>): Array<[string, Value]> {
+    return value.map((x)=>from_candid_tuple_n169(x));
 }
-function from_candid_variant_n92(value: {
-    ok: _Project;
-} | {
-    err: string;
-}): {
-    __kind__: "ok";
-    ok: Project;
-} | {
-    __kind__: "err";
-    err: string;
-} {
-    return "ok" in value ? {
-        __kind__: "ok",
-        ok: from_candid_Project_n93(value.ok)
-    } : "err" in value ? {
-        __kind__: "err",
-        err: value.err
-    } : value;
+function from_candid_vec_n173(value: Array<_Value>): Array<Value> {
+    return value.map((x)=>from_candid_Value_n170(x));
 }
-function from_candid_variant_n96(value: {
-    Active: null;
-} | {
-    Matured: null;
-} | {
-    Approved: null;
-} | {
-    Suspended: null;
-} | {
-    Draft: null;
-} | {
-    Completed: null;
-}): ProjectStatus {
-    return "Active" in value ? ProjectStatus.Active : "Matured" in value ? ProjectStatus.Matured : "Approved" in value ? ProjectStatus.Approved : "Suspended" in value ? ProjectStatus.Suspended : "Draft" in value ? ProjectStatus.Draft : "Completed" in value ? ProjectStatus.Completed : value;
+function from_candid_vec_n175(value: Array<[] | [_Account__1]>): Array<Account__1 | null> {
+    return value.map((x)=>from_candid_opt_n176(x));
 }
-function from_candid_vec_n125(value: Array<[string, _Value]>): Array<[string, Value]> {
-    return value.map((x)=>from_candid_tuple_n126(x));
+function from_candid_vec_n181(value: Array<_TokenMetadataItem>): Array<TokenMetadataItem> {
+    return value.map((x)=>from_candid_TokenMetadataItem_n182(x));
 }
-function from_candid_vec_n130(value: Array<_Value>): Array<Value> {
-    return value.map((x)=>from_candid_Value_n127(x));
+function from_candid_vec_n189(value: Array<[] | [_TransferResult]>): Array<TransferResult | null> {
+    return value.map((x)=>from_candid_opt_n190(x));
 }
-function from_candid_vec_n132(value: Array<[] | [_Account]>): Array<Account | null> {
-    return value.map((x)=>from_candid_opt_n133(x));
+function from_candid_vec_n202(value: Array<_Asset>): Array<Asset> {
+    return value.map((x)=>from_candid_Asset_n42(x));
 }
-function from_candid_vec_n138(value: Array<_TokenMetadataItem>): Array<TokenMetadataItem> {
-    return value.map((x)=>from_candid_TokenMetadataItem_n139(x));
+function from_candid_vec_n203(value: Array<_GeramCertificate>): Array<GeramCertificate> {
+    return value.map((x)=>from_candid_GeramCertificate_n52(x));
 }
-function from_candid_vec_n146(value: Array<[] | [_TransferResult]>): Array<TransferResult | null> {
-    return value.map((x)=>from_candid_opt_n147(x));
+function from_candid_vec_n204(value: Array<_EnergyVerification>): Array<EnergyVerification> {
+    return value.map((x)=>from_candid_EnergyVerification_n63(x));
 }
-function from_candid_vec_n152(value: Array<_Asset>): Array<Asset> {
-    return value.map((x)=>from_candid_Asset_n7(x));
+function from_candid_vec_n205(value: Array<_FundAsset>): Array<FundAsset> {
+    return value.map((x)=>from_candid_FundAsset_n71(x));
 }
-function from_candid_vec_n153(value: Array<_GeramCertificate>): Array<GeramCertificate> {
-    return value.map((x)=>from_candid_GeramCertificate_n18(x));
+function from_candid_vec_n206(value: Array<_FundTransaction>): Array<FundTransaction> {
+    return value.map((x)=>from_candid_FundTransaction_n151(x));
 }
-function from_candid_vec_n154(value: Array<_EnergyVerification>): Array<EnergyVerification> {
-    return value.map((x)=>from_candid_EnergyVerification_n29(x));
+function from_candid_vec_n207(value: Array<_HamiFund>): Array<HamiFund> {
+    return value.map((x)=>from_candid_HamiFund_n91(x));
 }
-function from_candid_vec_n156(value: Array<_FundAsset>): Array<FundAsset> {
-    return value.map((x)=>from_candid_FundAsset_n37(x));
+function from_candid_vec_n208(value: Array<_MarketSnapshot>): Array<MarketSnapshot> {
+    return value.map((x)=>from_candid_MarketSnapshot_n113(x));
 }
-function from_candid_vec_n157(value: Array<_FundTransaction>): Array<FundTransaction> {
-    return value.map((x)=>from_candid_FundTransaction_n111(x));
+function from_candid_vec_n209(value: Array<_Project>): Array<Project> {
+    return value.map((x)=>from_candid_Project_n129(x));
 }
-function from_candid_vec_n158(value: Array<_HamiFund>): Array<HamiFund> {
-    return value.map((x)=>from_candid_HamiFund_n57(x));
-}
-function from_candid_vec_n159(value: Array<_MarketSnapshot>): Array<MarketSnapshot> {
-    return value.map((x)=>from_candid_MarketSnapshot_n77(x));
-}
-function from_candid_vec_n160(value: Array<_Project>): Array<Project> {
-    return value.map((x)=>from_candid_Project_n93(x));
-}
-function to_candid_AIModelReference_n51(value: AIModelReference): _AIModelReference {
-    return to_candid_record_n52(value);
-}
-function to_candid_AIStrategyStatus_n53(value: AIStrategyStatus): _AIStrategyStatus {
-    return to_candid_variant_n54(value);
-}
-function to_candid_Account_n122(value: Account): _Account {
-    return to_candid_record_n123(value);
-}
-function to_candid_AssetReference_n83(value: AssetReference): _AssetReference {
-    return to_candid_record_n84(value);
-}
-function to_candid_AssetStatus_n3(value: AssetStatus): _AssetStatus {
-    return to_candid_variant_n4(value);
-}
-function to_candid_Asset_n1(value: Asset): _Asset {
-    return to_candid_record_n2(value);
-}
-function to_candid_BalanceOfRequest_n120(value: BalanceOfRequest): _BalanceOfRequest {
-    return to_candid_vec_n121(value);
-}
-function to_candid_EnergyVerificationStatus_n25(value: EnergyVerificationStatus): _EnergyVerificationStatus {
-    return to_candid_variant_n26(value);
-}
-function to_candid_EnergyVerification_n23(value: EnergyVerification): _EnergyVerification {
-    return to_candid_record_n24(value);
-}
-function to_candid_FinancialTerms_n87(value: FinancialTerms): _FinancialTerms {
-    return to_candid_record_n88(value);
-}
-function to_candid_FundAsset_n33(value: FundAsset): _FundAsset {
-    return to_candid_record_n34(value);
-}
-function to_candid_FundRiskParameters_n47(value: FundRiskParameters): _FundRiskParameters {
-    return to_candid_record_n48(value);
-}
-function to_candid_FundStatus_n43(value: FundStatus): _FundStatus {
-    return to_candid_variant_n44(value);
-}
-function to_candid_FundStrategy_n49(value: FundStrategy): _FundStrategy {
-    return to_candid_variant_n50(value);
-}
-function to_candid_FundTransactionType_n163(value: FundTransactionType): _FundTransactionType {
-    return to_candid_variant_n164(value);
-}
-function to_candid_FundTransaction_n161(value: FundTransaction): _FundTransaction {
-    return to_candid_record_n162(value);
-}
-function to_candid_FundType_n45(value: FundType): _FundType {
-    return to_candid_variant_n46(value);
-}
-function to_candid_GeramCertificate_n12(value: GeramCertificate): _GeramCertificate {
-    return to_candid_record_n13(value);
-}
-function to_candid_HamiFund_n41(value: HamiFund): _HamiFund {
-    return to_candid_record_n42(value);
-}
-function to_candid_MarketSnapshot_n73(value: MarketSnapshot): _MarketSnapshot {
-    return to_candid_record_n74(value);
-}
-function to_candid_ProjectStatus_n81(value: ProjectStatus): _ProjectStatus {
-    return to_candid_variant_n82(value);
-}
-function to_candid_ProjectType_n89(value: ProjectType): _ProjectType {
-    return to_candid_variant_n90(value);
-}
-function to_candid_Project_n79(value: Project): _Project {
-    return to_candid_record_n80(value);
-}
-function to_candid_RiskLevel_n14(value: RiskLevel): _RiskLevel {
-    return to_candid_variant_n15(value);
-}
-function to_candid_TransferArg_n144(value: TransferArg): _TransferArg {
-    return to_candid_record_n145(value);
-}
-function to_candid_Valuation_n85(value: Valuation): _Valuation {
+function to_candid_AIModelReference_n85(value: AIModelReference): _AIModelReference {
     return to_candid_record_n86(value);
 }
-function to_candid_opt_n142(value: bigint | null): [] | [bigint] {
+function to_candid_AIStrategyStatus_n87(value: AIStrategyStatus): _AIStrategyStatus {
+    return to_candid_variant_n88(value);
+}
+function to_candid_AccountKind_n33(value: AccountKind): _AccountKind {
+    return to_candid_variant_n34(value);
+}
+function to_candid_Account__1_n165(value: Account__1): _Account__1 {
+    return to_candid_record_n166(value);
+}
+function to_candid_AssetReference_n119(value: AssetReference): _AssetReference {
+    return to_candid_record_n120(value);
+}
+function to_candid_AssetStatus_n38(value: AssetStatus): _AssetStatus {
+    return to_candid_variant_n39(value);
+}
+function to_candid_Asset_n36(value: Asset): _Asset {
+    return to_candid_record_n37(value);
+}
+function to_candid_BalanceOfRequest_n163(value: BalanceOfRequest): _BalanceOfRequest {
+    return to_candid_vec_n164(value);
+}
+function to_candid_EnergyVerificationStatus_n59(value: EnergyVerificationStatus): _EnergyVerificationStatus {
+    return to_candid_variant_n60(value);
+}
+function to_candid_EnergyVerification_n57(value: EnergyVerification): _EnergyVerification {
+    return to_candid_record_n58(value);
+}
+function to_candid_FinancialTerms_n123(value: FinancialTerms): _FinancialTerms {
+    return to_candid_record_n124(value);
+}
+function to_candid_FundAsset_n67(value: FundAsset): _FundAsset {
+    return to_candid_record_n68(value);
+}
+function to_candid_FundRiskParameters_n81(value: FundRiskParameters): _FundRiskParameters {
+    return to_candid_record_n82(value);
+}
+function to_candid_FundStatus_n77(value: FundStatus): _FundStatus {
+    return to_candid_variant_n78(value);
+}
+function to_candid_FundStrategy_n83(value: FundStrategy): _FundStrategy {
+    return to_candid_variant_n84(value);
+}
+function to_candid_FundTransactionType_n212(value: FundTransactionType): _FundTransactionType {
+    return to_candid_variant_n213(value);
+}
+function to_candid_FundTransaction_n210(value: FundTransaction): _FundTransaction {
+    return to_candid_record_n211(value);
+}
+function to_candid_FundType_n79(value: FundType): _FundType {
+    return to_candid_variant_n80(value);
+}
+function to_candid_GeramCertificate_n46(value: GeramCertificate): _GeramCertificate {
+    return to_candid_record_n47(value);
+}
+function to_candid_HamiFund_n75(value: HamiFund): _HamiFund {
+    return to_candid_record_n76(value);
+}
+function to_candid_IdentityKind_n107(value: IdentityKind): _IdentityKind {
+    return to_candid_variant_n108(value);
+}
+function to_candid_IssueCertificateRequest_n195(value: IssueCertificateRequest): _IssueCertificateRequest {
+    return to_candid_record_n196(value);
+}
+function to_candid_MarketSnapshot_n109(value: MarketSnapshot): _MarketSnapshot {
+    return to_candid_record_n110(value);
+}
+function to_candid_ProjectStatus_n117(value: ProjectStatus): _ProjectStatus {
+    return to_candid_variant_n118(value);
+}
+function to_candid_ProjectType_n125(value: ProjectType): _ProjectType {
+    return to_candid_variant_n126(value);
+}
+function to_candid_Project_n115(value: Project): _Project {
+    return to_candid_record_n116(value);
+}
+function to_candid_RiskLevel_n48(value: RiskLevel): _RiskLevel {
+    return to_candid_variant_n49(value);
+}
+function to_candid_TransferArg_n187(value: TransferArg): _TransferArg {
+    return to_candid_record_n188(value);
+}
+function to_candid_Valuation_n121(value: Valuation): _Valuation {
+    return to_candid_record_n122(value);
+}
+function to_candid_WalletKind_n141(value: WalletKind): _WalletKind {
+    return to_candid_variant_n142(value);
+}
+function to_candid_opt_n185(value: bigint | null): [] | [bigint] {
     return value === null ? candid_none() : candid_some(value);
 }
-function to_candid_opt_n155(value: string | null): [] | [string] {
+function to_candid_opt_n35(value: string | null): [] | [string] {
     return value === null ? candid_none() : candid_some(value);
 }
-function to_candid_record_n123(value: {
+function to_candid_record_n110(value: {
+    supply_level?: bigint;
+    annual_return_bps?: bigint;
+    indicative_value: bigint;
+    valuation_reference?: string;
+    demand_level?: bigint;
+    risk_level: RiskLevel;
+    valuation_timestamp: bigint;
+    certificate_id: string;
+    maturity_timestamp: bigint;
+    base_value: bigint;
+}): {
+    supply_level: [] | [bigint];
+    annual_return_bps: [] | [bigint];
+    indicative_value: bigint;
+    valuation_reference: [] | [string];
+    demand_level: [] | [bigint];
+    risk_level: _RiskLevel;
+    valuation_timestamp: bigint;
+    certificate_id: string;
+    maturity_timestamp: bigint;
+    base_value: bigint;
+} {
+    return {
+        supply_level: value.supply_level ? candid_some(value.supply_level) : candid_none(),
+        annual_return_bps: value.annual_return_bps ? candid_some(value.annual_return_bps) : candid_none(),
+        indicative_value: value.indicative_value,
+        valuation_reference: value.valuation_reference ? candid_some(value.valuation_reference) : candid_none(),
+        demand_level: value.demand_level ? candid_some(value.demand_level) : candid_none(),
+        risk_level: to_candid_RiskLevel_n48(value.risk_level),
+        valuation_timestamp: value.valuation_timestamp,
+        certificate_id: value.certificate_id,
+        maturity_timestamp: value.maturity_timestamp,
+        base_value: value.base_value
+    };
+}
+function to_candid_record_n116(value: {
+    status: ProjectStatus;
+    title: string;
+    issuer_id: string;
+    asset: AssetReference;
+    description: string;
+    valuation: Valuation;
+    financial_terms: FinancialTerms;
+    risk_level: RiskLevel;
+    project_id: string;
+    project_type: ProjectType;
+}): {
+    status: _ProjectStatus;
+    title: string;
+    issuer_id: string;
+    asset: _AssetReference;
+    description: string;
+    valuation: _Valuation;
+    financial_terms: _FinancialTerms;
+    risk_level: _RiskLevel;
+    project_id: string;
+    project_type: _ProjectType;
+} {
+    return {
+        status: to_candid_ProjectStatus_n117(value.status),
+        title: value.title,
+        issuer_id: value.issuer_id,
+        asset: to_candid_AssetReference_n119(value.asset),
+        description: value.description,
+        valuation: to_candid_Valuation_n121(value.valuation),
+        financial_terms: to_candid_FinancialTerms_n123(value.financial_terms),
+        risk_level: to_candid_RiskLevel_n48(value.risk_level),
+        project_id: value.project_id,
+        project_type: to_candid_ProjectType_n125(value.project_type)
+    };
+}
+function to_candid_record_n120(value: {
+    registry_reference?: string;
+    asset_type: string;
+    description: string;
+    asset_id: string;
+}): {
+    registry_reference: [] | [string];
+    asset_type: string;
+    description: string;
+    asset_id: string;
+} {
+    return {
+        registry_reference: value.registry_reference ? candid_some(value.registry_reference) : candid_none(),
+        asset_type: value.asset_type,
+        description: value.description,
+        asset_id: value.asset_id
+    };
+}
+function to_candid_record_n122(value: {
+    expert_reference?: string;
+    valuation_date: bigint;
+    valuation_unit: string;
+    methodology?: string;
+    base_value: bigint;
+}): {
+    expert_reference: [] | [string];
+    valuation_date: bigint;
+    valuation_unit: string;
+    methodology: [] | [string];
+    base_value: bigint;
+} {
+    return {
+        expert_reference: value.expert_reference ? candid_some(value.expert_reference) : candid_none(),
+        valuation_date: value.valuation_date,
+        valuation_unit: value.valuation_unit,
+        methodology: value.methodology ? candid_some(value.methodology) : candid_none(),
+        base_value: value.base_value
+    };
+}
+function to_candid_record_n124(value: {
+    annual_return_bps?: bigint;
+    face_value: bigint;
+    currency: string;
+    maturity_timestamp: bigint;
+    liquidity_guaranteed: boolean;
+}): {
+    annual_return_bps: [] | [bigint];
+    face_value: bigint;
+    currency: string;
+    maturity_timestamp: bigint;
+    liquidity_guaranteed: boolean;
+} {
+    return {
+        annual_return_bps: value.annual_return_bps ? candid_some(value.annual_return_bps) : candid_none(),
+        face_value: value.face_value,
+        currency: value.currency,
+        maturity_timestamp: value.maturity_timestamp,
+        liquidity_guaranteed: value.liquidity_guaranteed
+    };
+}
+function to_candid_record_n166(value: {
     owner: Principal;
     subaccount?: Uint8Array;
 }): {
@@ -2060,7 +2916,169 @@ function to_candid_record_n123(value: {
         subaccount: value.subaccount ? candid_some(value.subaccount) : candid_none()
     };
 }
-function to_candid_record_n13(value: {
+function to_candid_record_n188(value: {
+    to: Account__1;
+    token_id: bigint;
+    memo?: Uint8Array;
+    from_subaccount?: Uint8Array;
+    created_at_time?: bigint;
+}): {
+    to: _Account__1;
+    token_id: bigint;
+    memo: [] | [Uint8Array];
+    from_subaccount: [] | [Uint8Array];
+    created_at_time: [] | [bigint];
+} {
+    return {
+        to: to_candid_Account__1_n165(value.to),
+        token_id: value.token_id,
+        memo: value.memo ? candid_some(value.memo) : candid_none(),
+        from_subaccount: value.from_subaccount ? candid_some(value.from_subaccount) : candid_none(),
+        created_at_time: value.created_at_time ? candid_some(value.created_at_time) : candid_none()
+    };
+}
+function to_candid_record_n196(value: {
+    title?: string;
+    asset_type?: string;
+    qr_reference?: string;
+    issuer_id: string;
+    annual_return_bps?: bigint;
+    physical_certificate_hash?: string;
+    face_value: bigint;
+    initial_holder: Principal;
+    external_reference?: string;
+    description?: string;
+    metadata_uri?: string;
+    currency: string;
+    risk_level: RiskLevel;
+    project_id: string;
+    certificate_id: string;
+    asset_id?: string;
+    maturity_timestamp: bigint;
+    base_value: bigint;
+    physical_certificate_available: boolean;
+}): {
+    title: [] | [string];
+    asset_type: [] | [string];
+    qr_reference: [] | [string];
+    issuer_id: string;
+    annual_return_bps: [] | [bigint];
+    physical_certificate_hash: [] | [string];
+    face_value: bigint;
+    initial_holder: Principal;
+    external_reference: [] | [string];
+    description: [] | [string];
+    metadata_uri: [] | [string];
+    currency: string;
+    risk_level: _RiskLevel;
+    project_id: string;
+    certificate_id: string;
+    asset_id: [] | [string];
+    maturity_timestamp: bigint;
+    base_value: bigint;
+    physical_certificate_available: boolean;
+} {
+    return {
+        title: value.title ? candid_some(value.title) : candid_none(),
+        asset_type: value.asset_type ? candid_some(value.asset_type) : candid_none(),
+        qr_reference: value.qr_reference ? candid_some(value.qr_reference) : candid_none(),
+        issuer_id: value.issuer_id,
+        annual_return_bps: value.annual_return_bps ? candid_some(value.annual_return_bps) : candid_none(),
+        physical_certificate_hash: value.physical_certificate_hash ? candid_some(value.physical_certificate_hash) : candid_none(),
+        face_value: value.face_value,
+        initial_holder: value.initial_holder,
+        external_reference: value.external_reference ? candid_some(value.external_reference) : candid_none(),
+        description: value.description ? candid_some(value.description) : candid_none(),
+        metadata_uri: value.metadata_uri ? candid_some(value.metadata_uri) : candid_none(),
+        currency: value.currency,
+        risk_level: to_candid_RiskLevel_n48(value.risk_level),
+        project_id: value.project_id,
+        certificate_id: value.certificate_id,
+        asset_id: value.asset_id ? candid_some(value.asset_id) : candid_none(),
+        maturity_timestamp: value.maturity_timestamp,
+        base_value: value.base_value,
+        physical_certificate_available: value.physical_certificate_available
+    };
+}
+function to_candid_record_n211(value: {
+    transaction_id: string;
+    transaction_type: FundTransactionType;
+    token_id?: bigint;
+    value: bigint;
+    reference?: string;
+    timestamp: bigint;
+    actor_principal: Principal;
+    ai_generated: boolean;
+    certificate_id?: string;
+    asset_id?: string;
+    fund_id: string;
+    position_id?: string;
+}): {
+    transaction_id: string;
+    transaction_type: _FundTransactionType;
+    token_id: [] | [bigint];
+    value: bigint;
+    reference: [] | [string];
+    timestamp: bigint;
+    actor_principal: Principal;
+    ai_generated: boolean;
+    certificate_id: [] | [string];
+    asset_id: [] | [string];
+    fund_id: string;
+    position_id: [] | [string];
+} {
+    return {
+        transaction_id: value.transaction_id,
+        transaction_type: to_candid_FundTransactionType_n212(value.transaction_type),
+        token_id: value.token_id ? candid_some(value.token_id) : candid_none(),
+        value: value.value,
+        reference: value.reference ? candid_some(value.reference) : candid_none(),
+        timestamp: value.timestamp,
+        actor_principal: value.actor_principal,
+        ai_generated: value.ai_generated,
+        certificate_id: value.certificate_id ? candid_some(value.certificate_id) : candid_none(),
+        asset_id: value.asset_id ? candid_some(value.asset_id) : candid_none(),
+        fund_id: value.fund_id,
+        position_id: value.position_id ? candid_some(value.position_id) : candid_none()
+    };
+}
+function to_candid_record_n37(value: {
+    status: AssetStatus;
+    registry_reference?: string;
+    title: string;
+    asset_type: string;
+    external_reference?: string;
+    description: string;
+    created_at: bigint;
+    metadata_uri?: string;
+    project_id: string;
+    asset_id: string;
+}): {
+    status: _AssetStatus;
+    registry_reference: [] | [string];
+    title: string;
+    asset_type: string;
+    external_reference: [] | [string];
+    description: string;
+    created_at: bigint;
+    metadata_uri: [] | [string];
+    project_id: string;
+    asset_id: string;
+} {
+    return {
+        status: to_candid_AssetStatus_n38(value.status),
+        registry_reference: value.registry_reference ? candid_some(value.registry_reference) : candid_none(),
+        title: value.title,
+        asset_type: value.asset_type,
+        external_reference: value.external_reference ? candid_some(value.external_reference) : candid_none(),
+        description: value.description,
+        created_at: value.created_at,
+        metadata_uri: value.metadata_uri ? candid_some(value.metadata_uri) : candid_none(),
+        project_id: value.project_id,
+        asset_id: value.asset_id
+    };
+}
+function to_candid_record_n47(value: {
     qr_reference?: string;
     issuer_id: string;
     annual_return_bps?: bigint;
@@ -2102,7 +3120,7 @@ function to_candid_record_n13(value: {
         face_value: value.face_value,
         initial_holder: value.initial_holder,
         currency: value.currency,
-        risk_level: to_candid_RiskLevel_n14(value.risk_level),
+        risk_level: to_candid_RiskLevel_n48(value.risk_level),
         project_id: value.project_id,
         certificate_id: value.certificate_id,
         issue_timestamp: value.issue_timestamp,
@@ -2111,106 +3129,7 @@ function to_candid_record_n13(value: {
         physical_certificate_available: value.physical_certificate_available
     };
 }
-function to_candid_record_n145(value: {
-    to: Account;
-    token_id: bigint;
-    memo?: Uint8Array;
-    from_subaccount?: Uint8Array;
-    created_at_time?: bigint;
-}): {
-    to: _Account;
-    token_id: bigint;
-    memo: [] | [Uint8Array];
-    from_subaccount: [] | [Uint8Array];
-    created_at_time: [] | [bigint];
-} {
-    return {
-        to: to_candid_Account_n122(value.to),
-        token_id: value.token_id,
-        memo: value.memo ? candid_some(value.memo) : candid_none(),
-        from_subaccount: value.from_subaccount ? candid_some(value.from_subaccount) : candid_none(),
-        created_at_time: value.created_at_time ? candid_some(value.created_at_time) : candid_none()
-    };
-}
-function to_candid_record_n162(value: {
-    transaction_id: string;
-    transaction_type: FundTransactionType;
-    token_id?: bigint;
-    value: bigint;
-    reference?: string;
-    timestamp: bigint;
-    actor_principal: Principal;
-    ai_generated: boolean;
-    certificate_id?: string;
-    asset_id?: string;
-    fund_id: string;
-    position_id?: string;
-}): {
-    transaction_id: string;
-    transaction_type: _FundTransactionType;
-    token_id: [] | [bigint];
-    value: bigint;
-    reference: [] | [string];
-    timestamp: bigint;
-    actor_principal: Principal;
-    ai_generated: boolean;
-    certificate_id: [] | [string];
-    asset_id: [] | [string];
-    fund_id: string;
-    position_id: [] | [string];
-} {
-    return {
-        transaction_id: value.transaction_id,
-        transaction_type: to_candid_FundTransactionType_n163(value.transaction_type),
-        token_id: value.token_id ? candid_some(value.token_id) : candid_none(),
-        value: value.value,
-        reference: value.reference ? candid_some(value.reference) : candid_none(),
-        timestamp: value.timestamp,
-        actor_principal: value.actor_principal,
-        ai_generated: value.ai_generated,
-        certificate_id: value.certificate_id ? candid_some(value.certificate_id) : candid_none(),
-        asset_id: value.asset_id ? candid_some(value.asset_id) : candid_none(),
-        fund_id: value.fund_id,
-        position_id: value.position_id ? candid_some(value.position_id) : candid_none()
-    };
-}
-function to_candid_record_n2(value: {
-    status: AssetStatus;
-    registry_reference?: string;
-    title: string;
-    asset_type: string;
-    external_reference?: string;
-    description: string;
-    created_at: bigint;
-    metadata_uri?: string;
-    project_id: string;
-    asset_id: string;
-}): {
-    status: _AssetStatus;
-    registry_reference: [] | [string];
-    title: string;
-    asset_type: string;
-    external_reference: [] | [string];
-    description: string;
-    created_at: bigint;
-    metadata_uri: [] | [string];
-    project_id: string;
-    asset_id: string;
-} {
-    return {
-        status: to_candid_AssetStatus_n3(value.status),
-        registry_reference: value.registry_reference ? candid_some(value.registry_reference) : candid_none(),
-        title: value.title,
-        asset_type: value.asset_type,
-        external_reference: value.external_reference ? candid_some(value.external_reference) : candid_none(),
-        description: value.description,
-        created_at: value.created_at,
-        metadata_uri: value.metadata_uri ? candid_some(value.metadata_uri) : candid_none(),
-        project_id: value.project_id,
-        asset_id: value.asset_id
-    };
-}
-function to_candid_record_n24(value: {
+function to_candid_record_n58(value: {
     status: EnergyVerificationStatus;
     heater_model?: string;
     measurement_period_start: bigint;
@@ -2248,7 +3167,7 @@ function to_candid_record_n24(value: {
     verification_id: string;
 } {
     return {
-        status: to_candid_EnergyVerificationStatus_n25(value.status),
+        status: to_candid_EnergyVerificationStatus_n59(value.status),
         heater_model: value.heater_model ? candid_some(value.heater_model) : candid_none(),
         measurement_period_start: value.measurement_period_start,
         energy_saved_m3: value.energy_saved_m3,
@@ -2267,7 +3186,7 @@ function to_candid_record_n24(value: {
         verification_id: value.verification_id
     };
 }
-function to_candid_record_n34(value: {
+function to_candid_record_n68(value: {
     active: boolean;
     asset_type: string;
     token_id?: bigint;
@@ -2298,7 +3217,7 @@ function to_candid_record_n34(value: {
         active: value.active,
         asset_type: value.asset_type,
         token_id: value.token_id ? candid_some(value.token_id) : candid_none(),
-        risk_level: to_candid_RiskLevel_n14(value.risk_level),
+        risk_level: to_candid_RiskLevel_n48(value.risk_level),
         quantity: value.quantity,
         valuation_timestamp: value.valuation_timestamp,
         project_id: value.project_id ? candid_some(value.project_id) : candid_none(),
@@ -2309,7 +3228,7 @@ function to_candid_record_n34(value: {
         fund_id: value.fund_id
     };
 }
-function to_candid_record_n42(value: {
+function to_candid_record_n76(value: {
     status: FundStatus;
     fund_type: FundType;
     title: string;
@@ -2357,13 +3276,13 @@ function to_candid_record_n42(value: {
     fund_id: string;
 } {
     return {
-        status: to_candid_FundStatus_n43(value.status),
-        fund_type: to_candid_FundType_n45(value.fund_type),
+        status: to_candid_FundStatus_n77(value.status),
+        fund_type: to_candid_FundType_n79(value.fund_type),
         title: value.title,
-        risk_parameters: to_candid_FundRiskParameters_n47(value.risk_parameters),
+        risk_parameters: to_candid_FundRiskParameters_n81(value.risk_parameters),
         decentralized: value.decentralized,
         base_currency: value.base_currency,
-        strategy: to_candid_FundStrategy_n49(value.strategy),
+        strategy: to_candid_FundStrategy_n83(value.strategy),
         name: value.name,
         allowed_geram: value.allowed_geram,
         description: value.description,
@@ -2372,16 +3291,16 @@ function to_candid_record_n42(value: {
         minimum_position_value: value.minimum_position_value ? candid_some(value.minimum_position_value) : candid_none(),
         target_value: value.target_value,
         allowed_tokens: value.allowed_tokens,
-        ai_model: value.ai_model ? candid_some(to_candid_AIModelReference_n51(value.ai_model)) : candid_none(),
+        ai_model: value.ai_model ? candid_some(to_candid_AIModelReference_n85(value.ai_model)) : candid_none(),
         manager_id: value.manager_id,
         activation_timestamp: value.activation_timestamp ? candid_some(value.activation_timestamp) : candid_none(),
         maturity_timestamp: value.maturity_timestamp ? candid_some(value.maturity_timestamp) : candid_none(),
-        ai_status: to_candid_AIStrategyStatus_n53(value.ai_status),
+        ai_status: to_candid_AIStrategyStatus_n87(value.ai_status),
         smart_contract_reference: value.smart_contract_reference ? candid_some(value.smart_contract_reference) : candid_none(),
         fund_id: value.fund_id
     };
 }
-function to_candid_record_n48(value: {
+function to_candid_record_n82(value: {
     min_liquidity_bps: bigint;
     max_asset_weight_bps: bigint;
     max_single_project_weight_bps: bigint;
@@ -2398,11 +3317,11 @@ function to_candid_record_n48(value: {
         min_liquidity_bps: value.min_liquidity_bps,
         max_asset_weight_bps: value.max_asset_weight_bps,
         max_single_project_weight_bps: value.max_single_project_weight_bps,
-        max_risk_level: to_candid_RiskLevel_n14(value.max_risk_level),
+        max_risk_level: to_candid_RiskLevel_n48(value.max_risk_level),
         max_drawdown_bps: value.max_drawdown_bps
     };
 }
-function to_candid_record_n52(value: {
+function to_candid_record_n86(value: {
     model_version: string;
     provider?: string;
     enabled: boolean;
@@ -2423,154 +3342,103 @@ function to_candid_record_n52(value: {
         endpoint_reference: value.endpoint_reference ? candid_some(value.endpoint_reference) : candid_none()
     };
 }
-function to_candid_record_n74(value: {
-    supply_level?: bigint;
-    annual_return_bps?: bigint;
-    indicative_value: bigint;
-    valuation_reference?: string;
-    demand_level?: bigint;
-    risk_level: RiskLevel;
-    valuation_timestamp: bigint;
-    certificate_id: string;
-    maturity_timestamp: bigint;
-    base_value: bigint;
-}): {
-    supply_level: [] | [bigint];
-    annual_return_bps: [] | [bigint];
-    indicative_value: bigint;
-    valuation_reference: [] | [string];
-    demand_level: [] | [bigint];
-    risk_level: _RiskLevel;
-    valuation_timestamp: bigint;
-    certificate_id: string;
-    maturity_timestamp: bigint;
-    base_value: bigint;
-} {
-    return {
-        supply_level: value.supply_level ? candid_some(value.supply_level) : candid_none(),
-        annual_return_bps: value.annual_return_bps ? candid_some(value.annual_return_bps) : candid_none(),
-        indicative_value: value.indicative_value,
-        valuation_reference: value.valuation_reference ? candid_some(value.valuation_reference) : candid_none(),
-        demand_level: value.demand_level ? candid_some(value.demand_level) : candid_none(),
-        risk_level: to_candid_RiskLevel_n14(value.risk_level),
-        valuation_timestamp: value.valuation_timestamp,
-        certificate_id: value.certificate_id,
-        maturity_timestamp: value.maturity_timestamp,
-        base_value: value.base_value
-    };
-}
-function to_candid_record_n80(value: {
-    status: ProjectStatus;
-    title: string;
-    issuer_id: string;
-    asset: AssetReference;
-    description: string;
-    valuation: Valuation;
-    financial_terms: FinancialTerms;
-    risk_level: RiskLevel;
-    project_id: string;
-    project_type: ProjectType;
-}): {
-    status: _ProjectStatus;
-    title: string;
-    issuer_id: string;
-    asset: _AssetReference;
-    description: string;
-    valuation: _Valuation;
-    financial_terms: _FinancialTerms;
-    risk_level: _RiskLevel;
-    project_id: string;
-    project_type: _ProjectType;
-} {
-    return {
-        status: to_candid_ProjectStatus_n81(value.status),
-        title: value.title,
-        issuer_id: value.issuer_id,
-        asset: to_candid_AssetReference_n83(value.asset),
-        description: value.description,
-        valuation: to_candid_Valuation_n85(value.valuation),
-        financial_terms: to_candid_FinancialTerms_n87(value.financial_terms),
-        risk_level: to_candid_RiskLevel_n14(value.risk_level),
-        project_id: value.project_id,
-        project_type: to_candid_ProjectType_n89(value.project_type)
-    };
-}
-function to_candid_record_n84(value: {
-    registry_reference?: string;
-    asset_type: string;
-    description: string;
-    asset_id: string;
-}): {
-    registry_reference: [] | [string];
-    asset_type: string;
-    description: string;
-    asset_id: string;
-} {
-    return {
-        registry_reference: value.registry_reference ? candid_some(value.registry_reference) : candid_none(),
-        asset_type: value.asset_type,
-        description: value.description,
-        asset_id: value.asset_id
-    };
-}
-function to_candid_record_n86(value: {
-    expert_reference?: string;
-    valuation_date: bigint;
-    valuation_unit: string;
-    methodology?: string;
-    base_value: bigint;
-}): {
-    expert_reference: [] | [string];
-    valuation_date: bigint;
-    valuation_unit: string;
-    methodology: [] | [string];
-    base_value: bigint;
-} {
-    return {
-        expert_reference: value.expert_reference ? candid_some(value.expert_reference) : candid_none(),
-        valuation_date: value.valuation_date,
-        valuation_unit: value.valuation_unit,
-        methodology: value.methodology ? candid_some(value.methodology) : candid_none(),
-        base_value: value.base_value
-    };
-}
-function to_candid_record_n88(value: {
-    annual_return_bps?: bigint;
-    face_value: bigint;
-    currency: string;
-    maturity_timestamp: bigint;
-    liquidity_guaranteed: boolean;
-}): {
-    annual_return_bps: [] | [bigint];
-    face_value: bigint;
-    currency: string;
-    maturity_timestamp: bigint;
-    liquidity_guaranteed: boolean;
-} {
-    return {
-        annual_return_bps: value.annual_return_bps ? candid_some(value.annual_return_bps) : candid_none(),
-        face_value: value.face_value,
-        currency: value.currency,
-        maturity_timestamp: value.maturity_timestamp,
-        liquidity_guaranteed: value.liquidity_guaranteed
-    };
-}
-function to_candid_variant_n15(value: RiskLevel): {
-    Low: null;
+function to_candid_variant_n108(value: IdentityKind): {
+    Institution: null;
 } | {
-    High: null;
+    Organization: null;
 } | {
-    Medium: null;
+    Individual: null;
+} | {
+    Other: null;
 } {
-    return value == RiskLevel.Low ? {
-        Low: null
-    } : value == RiskLevel.High ? {
-        High: null
-    } : value == RiskLevel.Medium ? {
-        Medium: null
+    return value == IdentityKind.Institution ? {
+        Institution: null
+    } : value == IdentityKind.Organization ? {
+        Organization: null
+    } : value == IdentityKind.Individual ? {
+        Individual: null
+    } : value == IdentityKind.Other ? {
+        Other: null
     } : value;
 }
-function to_candid_variant_n164(value: FundTransactionType): {
+function to_candid_variant_n118(value: ProjectStatus): {
+    Active: null;
+} | {
+    Matured: null;
+} | {
+    Approved: null;
+} | {
+    Suspended: null;
+} | {
+    Draft: null;
+} | {
+    Completed: null;
+} {
+    return value == ProjectStatus.Active ? {
+        Active: null
+    } : value == ProjectStatus.Matured ? {
+        Matured: null
+    } : value == ProjectStatus.Approved ? {
+        Approved: null
+    } : value == ProjectStatus.Suspended ? {
+        Suspended: null
+    } : value == ProjectStatus.Draft ? {
+        Draft: null
+    } : value == ProjectStatus.Completed ? {
+        Completed: null
+    } : value;
+}
+function to_candid_variant_n126(value: ProjectType): {
+    Production: null;
+} | {
+    Energy: null;
+} | {
+    Infrastructure: null;
+} | {
+    Logistics: null;
+} | {
+    Housing: null;
+} | {
+    Other: null;
+} {
+    return value == ProjectType.Production ? {
+        Production: null
+    } : value == ProjectType.Energy ? {
+        Energy: null
+    } : value == ProjectType.Infrastructure ? {
+        Infrastructure: null
+    } : value == ProjectType.Logistics ? {
+        Logistics: null
+    } : value == ProjectType.Housing ? {
+        Housing: null
+    } : value == ProjectType.Other ? {
+        Other: null
+    } : value;
+}
+function to_candid_variant_n142(value: WalletKind): {
+    Personal: null;
+} | {
+    Organization: null;
+} | {
+    Custodial: null;
+} | {
+    Other: null;
+} | {
+    Settlement: null;
+} {
+    return value == WalletKind.Personal ? {
+        Personal: null
+    } : value == WalletKind.Organization ? {
+        Organization: null
+    } : value == WalletKind.Custodial ? {
+        Custodial: null
+    } : value == WalletKind.Other ? {
+        Other: null
+    } : value == WalletKind.Settlement ? {
+        Settlement: null
+    } : value;
+}
+function to_candid_variant_n213(value: FundTransactionType): {
     Fee: null;
 } | {
     Deposit: null;
@@ -2605,7 +3473,68 @@ function to_candid_variant_n164(value: FundTransactionType): {
         Adjustment: null
     } : value;
 }
-function to_candid_variant_n26(value: EnergyVerificationStatus): {
+function to_candid_variant_n34(value: AccountKind): {
+    Institution: null;
+} | {
+    Personal: null;
+} | {
+    Organization: null;
+} | {
+    Custodial: null;
+} | {
+    Other: null;
+} | {
+    Settlement: null;
+} {
+    return value == AccountKind.Institution ? {
+        Institution: null
+    } : value == AccountKind.Personal ? {
+        Personal: null
+    } : value == AccountKind.Organization ? {
+        Organization: null
+    } : value == AccountKind.Custodial ? {
+        Custodial: null
+    } : value == AccountKind.Other ? {
+        Other: null
+    } : value == AccountKind.Settlement ? {
+        Settlement: null
+    } : value;
+}
+function to_candid_variant_n39(value: AssetStatus): {
+    Inactive: null;
+} | {
+    Active: null;
+} | {
+    Draft: null;
+} | {
+    Retired: null;
+} {
+    return value == AssetStatus.Inactive ? {
+        Inactive: null
+    } : value == AssetStatus.Active ? {
+        Active: null
+    } : value == AssetStatus.Draft ? {
+        Draft: null
+    } : value == AssetStatus.Retired ? {
+        Retired: null
+    } : value;
+}
+function to_candid_variant_n49(value: RiskLevel): {
+    Low: null;
+} | {
+    High: null;
+} | {
+    Medium: null;
+} {
+    return value == RiskLevel.Low ? {
+        Low: null
+    } : value == RiskLevel.High ? {
+        High: null
+    } : value == RiskLevel.Medium ? {
+        Medium: null
+    } : value;
+}
+function to_candid_variant_n60(value: EnergyVerificationStatus): {
     Draft: null;
 } | {
     Rejected: null;
@@ -2628,26 +3557,7 @@ function to_candid_variant_n26(value: EnergyVerificationStatus): {
         Pending: null
     } : value;
 }
-function to_candid_variant_n4(value: AssetStatus): {
-    Inactive: null;
-} | {
-    Active: null;
-} | {
-    Draft: null;
-} | {
-    Retired: null;
-} {
-    return value == AssetStatus.Inactive ? {
-        Inactive: null
-    } : value == AssetStatus.Active ? {
-        Active: null
-    } : value == AssetStatus.Draft ? {
-        Draft: null
-    } : value == AssetStatus.Retired ? {
-        Retired: null
-    } : value;
-}
-function to_candid_variant_n44(value: FundStatus): {
+function to_candid_variant_n78(value: FundStatus): {
     Paused: null;
 } | {
     Closed: null;
@@ -2670,7 +3580,7 @@ function to_candid_variant_n44(value: FundStatus): {
         Draft: null
     } : value;
 }
-function to_candid_variant_n46(value: FundType): {
+function to_candid_variant_n80(value: FundType): {
     Production: null;
 } | {
     Energy: null;
@@ -2705,7 +3615,7 @@ function to_candid_variant_n46(value: FundType): {
         Other: null
     } : value;
 }
-function to_candid_variant_n50(value: FundStrategy): {
+function to_candid_variant_n84(value: FundStrategy): {
     MultiStrategy: null;
 } | {
     Hold: null;
@@ -2732,7 +3642,7 @@ function to_candid_variant_n50(value: FundStrategy): {
         Liquidity: null
     } : value;
 }
-function to_candid_variant_n54(value: AIStrategyStatus): {
+function to_candid_variant_n88(value: AIStrategyStatus): {
     Disabled: null;
 } | {
     Advisory: null;
@@ -2751,65 +3661,11 @@ function to_candid_variant_n54(value: AIStrategyStatus): {
         Assisted: null
     } : value;
 }
-function to_candid_variant_n82(value: ProjectStatus): {
-    Active: null;
-} | {
-    Matured: null;
-} | {
-    Approved: null;
-} | {
-    Suspended: null;
-} | {
-    Draft: null;
-} | {
-    Completed: null;
-} {
-    return value == ProjectStatus.Active ? {
-        Active: null
-    } : value == ProjectStatus.Matured ? {
-        Matured: null
-    } : value == ProjectStatus.Approved ? {
-        Approved: null
-    } : value == ProjectStatus.Suspended ? {
-        Suspended: null
-    } : value == ProjectStatus.Draft ? {
-        Draft: null
-    } : value == ProjectStatus.Completed ? {
-        Completed: null
-    } : value;
+function to_candid_vec_n164(value: Array<Account__1>): Array<_Account__1> {
+    return value.map((x)=>to_candid_Account__1_n165(x));
 }
-function to_candid_variant_n90(value: ProjectType): {
-    Production: null;
-} | {
-    Energy: null;
-} | {
-    Infrastructure: null;
-} | {
-    Logistics: null;
-} | {
-    Housing: null;
-} | {
-    Other: null;
-} {
-    return value == ProjectType.Production ? {
-        Production: null
-    } : value == ProjectType.Energy ? {
-        Energy: null
-    } : value == ProjectType.Infrastructure ? {
-        Infrastructure: null
-    } : value == ProjectType.Logistics ? {
-        Logistics: null
-    } : value == ProjectType.Housing ? {
-        Housing: null
-    } : value == ProjectType.Other ? {
-        Other: null
-    } : value;
-}
-function to_candid_vec_n121(value: Array<Account>): Array<_Account> {
-    return value.map((x)=>to_candid_Account_n122(x));
-}
-function to_candid_vec_n143(value: Array<TransferArg>): Array<_TransferArg> {
-    return value.map((x)=>to_candid_TransferArg_n144(x));
+function to_candid_vec_n186(value: Array<TransferArg>): Array<_TransferArg> {
+    return value.map((x)=>to_candid_TransferArg_n187(x));
 }
 export interface CreateActorOptions {
     agent?: Agent;

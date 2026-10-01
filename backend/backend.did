@@ -214,6 +214,8 @@ type IssueCertificateRequest =
    description: opt text;
    external_reference: opt text;
    face_value: nat;
+   icp_valuation_timestamp: int;
+   icp_value: nat;
    initial_holder: principal;
    issuer_id: text;
    maturity_timestamp: int;
@@ -285,6 +287,8 @@ type GeramCertificate =
    certificate_id: text;
    currency: text;
    face_value: nat;
+   icp_valuation_timestamp: int;
+   icp_value: nat;
    initial_holder: principal;
    issue_timestamp: int;
    issuer_id: text;

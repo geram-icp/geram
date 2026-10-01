@@ -71,6 +71,8 @@ module {
     face_value : Nat;
     base_value : Nat;
     currency : Text;
+    icp_value : Nat;
+    icp_valuation_timestamp : Int;
     annual_return_bps : ?Nat;
     risk_level : RiskLevel;
     physical_certificate_available : Bool;

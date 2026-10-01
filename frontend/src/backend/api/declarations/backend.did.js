@@ -10,6 +10,104 @@ import { IDL } from '@icp-sdk/core/candid';
 
 export const idlFactory = ({ IDL }) => {
   const Value = IDL.Rec();
+  const AccountStatus = IDL.Variant({
+    'Closed' : IDL.Null,
+    'Active' : IDL.Null,
+    'Suspended' : IDL.Null,
+    'Archived' : IDL.Null,
+    'Pending' : IDL.Null,
+  });
+  const AccountKind = IDL.Variant({
+    'Institution' : IDL.Null,
+    'Personal' : IDL.Null,
+    'Organization' : IDL.Null,
+    'Custodial' : IDL.Null,
+    'Other' : IDL.Null,
+    'Settlement' : IDL.Null,
+  });
+  const Account = IDL.Record({
+    'account_id' : IDL.Text,
+    'status' : AccountStatus,
+    'updated_at' : IDL.Int,
+    'kind' : AccountKind,
+    'created_at' : IDL.Int,
+    'metadata_ref' : IDL.Opt(IDL.Text),
+    'identity_id' : IDL.Text,
+  });
+  const ErrorState = IDL.Variant({ 'Failed' : IDL.Null, 'Unknown' : IDL.Null });
+  const ErrorCategory = IDL.Variant({
+    'RequiredField' : IDL.Null,
+    'BusinessRule' : IDL.Null,
+    'System' : IDL.Null,
+    'Authorization' : IDL.Null,
+    'NotFound' : IDL.Null,
+    'Identity' : IDL.Null,
+    'External' : IDL.Null,
+    'Validation' : IDL.Null,
+    'Reference' : IDL.Null,
+    'Conflict' : IDL.Null,
+  });
+  const Error = IDL.Record({
+    'code' : IDL.Text,
+    'state' : ErrorState,
+    'message' : IDL.Text,
+    'category' : ErrorCategory,
+    'correlation_id' : IDL.Opt(IDL.Text),
+    'retryable' : IDL.Bool,
+  });
+  const Result_2 = IDL.Variant({ 'ok' : Account, 'err' : Error });
+  const IdentityStatus = IDL.Variant({
+    'Active' : IDL.Null,
+    'Suspended' : IDL.Null,
+    'Archived' : IDL.Null,
+    'Pending' : IDL.Null,
+  });
+  const IdentityKind = IDL.Variant({
+    'Institution' : IDL.Null,
+    'Organization' : IDL.Null,
+    'Individual' : IDL.Null,
+    'Other' : IDL.Null,
+  });
+  const Identity = IDL.Record({
+    'status' : IdentityStatus,
+    'updated_at' : IDL.Int,
+    'kind' : IdentityKind,
+    'created_at' : IDL.Int,
+    'metadata_ref' : IDL.Opt(IDL.Text),
+    'identity_id' : IDL.Text,
+  });
+  const Result_1 = IDL.Variant({ 'ok' : Identity, 'err' : Error });
+  const WalletStatus = IDL.Variant({
+    'Closed' : IDL.Null,
+    'Active' : IDL.Null,
+    'Suspended' : IDL.Null,
+    'Archived' : IDL.Null,
+    'Pending' : IDL.Null,
+  });
+  const WalletKind = IDL.Variant({
+    'Personal' : IDL.Null,
+    'Organization' : IDL.Null,
+    'Custodial' : IDL.Null,
+    'Other' : IDL.Null,
+    'Settlement' : IDL.Null,
+  });
+  const Wallet = IDL.Record({
+    'account_id' : IDL.Text,
+    'status' : WalletStatus,
+    'updated_at' : IDL.Int,
+    'kind' : WalletKind,
+    'created_at' : IDL.Int,
+    'metadata_ref' : IDL.Opt(IDL.Text),
+    'wallet_id' : IDL.Text,
+  });
+  const Result = IDL.Variant({ 'ok' : Wallet, 'err' : Error });
+  const PrincipalBinding = IDL.Record({
+    'active' : IDL.Bool,
+    'bound_at' : IDL.Int,
+    'identity_id' : IDL.Text,
+    'principal_ref' : IDL.Text,
+  });
+  const Result_4 = IDL.Variant({ 'ok' : PrincipalBinding, 'err' : Error });
   const AssetStatus = IDL.Variant({
     'Inactive' : IDL.Null,
     'Active' : IDL.Null,
@@ -275,11 +373,15 @@ export const idlFactory = ({ IDL }) => {
     'fund_id' : IDL.Text,
     'position_id' : IDL.Opt(IDL.Text),
   });
-  const Account = IDL.Record({
+  const VerificationRef = IDL.Record({
+    'identity_id' : IDL.Text,
+    'verification_id' : IDL.Text,
+  });
+  const Account__1 = IDL.Record({
     'owner' : IDL.Principal,
     'subaccount' : IDL.Opt(IDL.Vec(IDL.Nat8)),
   });
-  const BalanceOfRequest = IDL.Vec(Account);
+  const BalanceOfRequest = IDL.Vec(Account__1);
   const BalanceOfResponse = IDL.Vec(IDL.Nat);
   const Map = IDL.Vec(IDL.Tuple(IDL.Text, Value));
   Value.fill(
@@ -294,7 +396,7 @@ export const idlFactory = ({ IDL }) => {
   );
   const CollectionMetadataResponse = IDL.Vec(IDL.Tuple(IDL.Text, Value));
   const OwnerOfRequest = IDL.Vec(IDL.Nat);
-  const OwnerOfResponse = IDL.Vec(IDL.Opt(Account));
+  const OwnerOfResponse = IDL.Vec(IDL.Opt(Account__1));
   const SupportedStandardsResponse = IDL.Vec(
     IDL.Record({ 'url' : IDL.Text, 'name' : IDL.Text })
   );
@@ -303,7 +405,7 @@ export const idlFactory = ({ IDL }) => {
   const TokenMetadataItem = IDL.Opt(Metadata);
   const TokenMetadataResponse = IDL.Vec(TokenMetadataItem);
   const TransferArg = IDL.Record({
-    'to' : Account,
+    'to' : Account__1,
     'token_id' : IDL.Nat,
     'memo' : IDL.Opt(IDL.Vec(IDL.Nat8)),
     'from_subaccount' : IDL.Opt(IDL.Vec(IDL.Nat8)),
@@ -326,12 +428,56 @@ export const idlFactory = ({ IDL }) => {
     'TooOld' : IDL.Null,
   });
   const TransferResult = IDL.Variant({ 'Ok' : IDL.Nat, 'Err' : TransferError });
+  const IssueCertificateRequest = IDL.Record({
+    'title' : IDL.Opt(IDL.Text),
+    'asset_type' : IDL.Opt(IDL.Text),
+    'qr_reference' : IDL.Opt(IDL.Text),
+    'issuer_id' : IDL.Text,
+    'annual_return_bps' : IDL.Opt(IDL.Nat),
+    'physical_certificate_hash' : IDL.Opt(IDL.Text),
+    'face_value' : IDL.Nat,
+    'initial_holder' : IDL.Principal,
+    'external_reference' : IDL.Opt(IDL.Text),
+    'description' : IDL.Opt(IDL.Text),
+    'metadata_uri' : IDL.Opt(IDL.Text),
+    'currency' : IDL.Text,
+    'risk_level' : RiskLevel,
+    'project_id' : IDL.Text,
+    'certificate_id' : IDL.Text,
+    'asset_id' : IDL.Opt(IDL.Text),
+    'maturity_timestamp' : IDL.Int,
+    'base_value' : IDL.Nat,
+    'physical_certificate_available' : IDL.Bool,
+  });
+  const IssueCertificateResult = IDL.Variant({
+    'ok' : IDL.Record({
+      'transaction_id' : IDL.Nat,
+      'certificate' : GeramCertificate,
+      'token_id' : IDL.Nat,
+    }),
+    'err' : IDL.Text,
+  });
+  const Result_3 = IDL.Variant({ 'ok' : VerificationRef, 'err' : Error });
   const FundTransactionResult = IDL.Variant({
     'ok' : FundTransaction,
     'err' : IDL.Text,
   });
   const ValidationResult = IDL.Variant({ 'ok' : IDL.Text, 'err' : IDL.Text });
   const GERAM = IDL.Service({
+    'activate_account' : IDL.Func([IDL.Text, IDL.Int], [Result_2], []),
+    'activate_identity' : IDL.Func([IDL.Text, IDL.Int], [Result_1], []),
+    'activate_wallet' : IDL.Func([IDL.Text, IDL.Int], [Result], []),
+    'archive_account' : IDL.Func([IDL.Text, IDL.Int], [Result_2], []),
+    'archive_identity' : IDL.Func([IDL.Text, IDL.Int], [Result_1], []),
+    'archive_wallet' : IDL.Func([IDL.Text, IDL.Int], [Result], []),
+    'bind_principal' : IDL.Func([IDL.Text, IDL.Text, IDL.Int], [Result_4], []),
+    'close_account' : IDL.Func([IDL.Text, IDL.Int], [Result_2], []),
+    'close_wallet' : IDL.Func([IDL.Text, IDL.Int], [Result], []),
+    'create_account' : IDL.Func(
+        [IDL.Text, IDL.Text, AccountKind, IDL.Opt(IDL.Text), IDL.Int],
+        [Result_2],
+        [],
+      ),
     'create_asset' : IDL.Func([Asset], [AssetResult], []),
     'create_certificate' : IDL.Func(
         [GeramCertificate],
@@ -346,12 +492,28 @@ export const idlFactory = ({ IDL }) => {
     'create_fund_asset' : IDL.Func([FundAsset], [FundAssetResult], []),
     'create_fund_position' : IDL.Func([FundPosition], [FundPositionResult], []),
     'create_hami_fund' : IDL.Func([HamiFund], [HamiFundResult], []),
+    'create_identity' : IDL.Func(
+        [IDL.Text, IdentityKind, IDL.Opt(IDL.Text), IDL.Int],
+        [Result_1],
+        [],
+      ),
     'create_market_snapshot' : IDL.Func(
         [MarketSnapshot],
         [MarketSnapshotResult],
         [],
       ),
     'create_project' : IDL.Func([Project], [ProjectResult], []),
+    'create_wallet' : IDL.Func(
+        [IDL.Text, IDL.Text, WalletKind, IDL.Opt(IDL.Text), IDL.Int],
+        [Result],
+        [],
+      ),
+    'get_account' : IDL.Func([IDL.Text], [IDL.Opt(Account)], ['query']),
+    'get_accounts_by_identity' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(Account)],
+        ['query'],
+      ),
     'get_asset' : IDL.Func([IDL.Text], [IDL.Opt(Asset)], ['query']),
     'get_certificate' : IDL.Func(
         [IDL.Text],
@@ -386,12 +548,29 @@ export const idlFactory = ({ IDL }) => {
         ],
         ['query'],
       ),
+    'get_identity' : IDL.Func([IDL.Text], [IDL.Opt(Identity)], ['query']),
+    'get_identity_by_principal' : IDL.Func(
+        [IDL.Text],
+        [IDL.Opt(Identity)],
+        ['query'],
+      ),
+    'get_identity_verifications' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(VerificationRef)],
+        ['query'],
+      ),
     'get_market_snapshot' : IDL.Func(
         [IDL.Text],
         [IDL.Opt(MarketSnapshot)],
         ['query'],
       ),
     'get_project' : IDL.Func([IDL.Text], [IDL.Opt(Project)], ['query']),
+    'get_wallet' : IDL.Func([IDL.Text], [IDL.Opt(Wallet)], ['query']),
+    'get_wallets_by_account' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(Wallet)],
+        ['query'],
+      ),
     'icrc7_atomic_batch_transfers' : IDL.Func(
         [],
         [IDL.Opt(IDL.Bool)],
@@ -435,7 +614,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'icrc7_tokens_of' : IDL.Func(
-        [Account, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)],
+        [Account__1, IDL.Opt(IDL.Nat), IDL.Opt(IDL.Nat)],
         [IDL.Vec(IDL.Nat)],
         ['query'],
       ),
@@ -446,6 +625,12 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'icrc7_tx_window' : IDL.Func([], [IDL.Opt(IDL.Nat)], ['query']),
+    'issue_certificate' : IDL.Func(
+        [IssueCertificateRequest],
+        [IssueCertificateResult],
+        [],
+      ),
+    'link_verification' : IDL.Func([IDL.Text, IDL.Text], [Result_3], []),
     'list_assets' : IDL.Func([], [IDL.Vec(Asset)], ['query']),
     'list_certificates' : IDL.Func([], [IDL.Vec(GeramCertificate)], ['query']),
     'list_energy_verifications' : IDL.Func(
@@ -469,6 +654,11 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'list_hami_funds' : IDL.Func([], [IDL.Vec(HamiFund)], ['query']),
+    'list_identity_bindings' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(PrincipalBinding)],
+        ['query'],
+      ),
     'list_market_snapshots' : IDL.Func(
         [],
         [IDL.Vec(MarketSnapshot)],
@@ -478,6 +668,26 @@ export const idlFactory = ({ IDL }) => {
     'record_fund_transaction' : IDL.Func(
         [FundTransaction],
         [FundTransactionResult],
+        [],
+      ),
+    'suspend_account' : IDL.Func([IDL.Text, IDL.Int], [Result_2], []),
+    'suspend_identity' : IDL.Func([IDL.Text, IDL.Int], [Result_1], []),
+    'suspend_wallet' : IDL.Func([IDL.Text, IDL.Int], [Result], []),
+    'unbind_principal' : IDL.Func([IDL.Text, IDL.Text], [Result_4], []),
+    'unlink_verification' : IDL.Func([IDL.Text, IDL.Text], [Result_3], []),
+    'update_account' : IDL.Func(
+        [IDL.Text, AccountKind, IDL.Opt(IDL.Text), IDL.Int],
+        [Result_2],
+        [],
+      ),
+    'update_identity' : IDL.Func(
+        [IDL.Text, IdentityKind, IDL.Opt(IDL.Text), IDL.Int],
+        [Result_1],
+        [],
+      ),
+    'update_wallet' : IDL.Func(
+        [IDL.Text, WalletKind, IDL.Opt(IDL.Text), IDL.Int],
+        [Result],
         [],
       ),
     'validate_certificate' : IDL.Func(

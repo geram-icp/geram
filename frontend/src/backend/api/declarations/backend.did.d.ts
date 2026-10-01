@@ -22,6 +22,26 @@ export type AIStrategyStatus = { 'Disabled' : null } |
   { 'Automated' : null } |
   { 'Assisted' : null };
 export interface Account {
+  'account_id' : string,
+  'status' : AccountStatus,
+  'updated_at' : bigint,
+  'kind' : AccountKind,
+  'created_at' : bigint,
+  'metadata_ref' : [] | [string],
+  'identity_id' : string,
+}
+export type AccountKind = { 'Institution' : null } |
+  { 'Personal' : null } |
+  { 'Organization' : null } |
+  { 'Custodial' : null } |
+  { 'Other' : null } |
+  { 'Settlement' : null };
+export type AccountStatus = { 'Closed' : null } |
+  { 'Active' : null } |
+  { 'Suspended' : null } |
+  { 'Archived' : null } |
+  { 'Pending' : null };
+export interface Account__1 {
   'owner' : Principal,
   'subaccount' : [] | [Uint8Array],
 }
@@ -49,7 +69,7 @@ export type AssetStatus = { 'Inactive' : null } |
   { 'Active' : null } |
   { 'Draft' : null } |
   { 'Retired' : null };
-export type BalanceOfRequest = Array<Account>;
+export type BalanceOfRequest = Array<Account__1>;
 export type BalanceOfResponse = Array<bigint>;
 export type CertificateResult = { 'ok' : GeramCertificate } |
   { 'err' : string };
@@ -80,6 +100,26 @@ export type EnergyVerificationStatus = { 'Draft' : null } |
   { 'Verified' : null } |
   { 'Expired' : null } |
   { 'Pending' : null };
+export interface Error {
+  'code' : string,
+  'state' : ErrorState,
+  'message' : string,
+  'category' : ErrorCategory,
+  'correlation_id' : [] | [string],
+  'retryable' : boolean,
+}
+export type ErrorCategory = { 'RequiredField' : null } |
+  { 'BusinessRule' : null } |
+  { 'System' : null } |
+  { 'Authorization' : null } |
+  { 'NotFound' : null } |
+  { 'Identity' : null } |
+  { 'External' : null } |
+  { 'Validation' : null } |
+  { 'Reference' : null } |
+  { 'Conflict' : null };
+export type ErrorState = { 'Failed' : null } |
+  { 'Unknown' : null };
 export interface FinancialTerms {
   'annual_return_bps' : [] | [bigint],
   'face_value' : bigint,
@@ -168,6 +208,19 @@ export type FundType = { 'Production' : null } |
   { 'Housing' : null } |
   { 'Other' : null };
 export interface GERAM {
+  'activate_account' : ActorMethod<[string, bigint], Result_2>,
+  'activate_identity' : ActorMethod<[string, bigint], Result_1>,
+  'activate_wallet' : ActorMethod<[string, bigint], Result>,
+  'archive_account' : ActorMethod<[string, bigint], Result_2>,
+  'archive_identity' : ActorMethod<[string, bigint], Result_1>,
+  'archive_wallet' : ActorMethod<[string, bigint], Result>,
+  'bind_principal' : ActorMethod<[string, string, bigint], Result_4>,
+  'close_account' : ActorMethod<[string, bigint], Result_2>,
+  'close_wallet' : ActorMethod<[string, bigint], Result>,
+  'create_account' : ActorMethod<
+    [string, string, AccountKind, [] | [string], bigint],
+    Result_2
+  >,
   'create_asset' : ActorMethod<[Asset], AssetResult>,
   'create_certificate' : ActorMethod<[GeramCertificate], CertificateResult>,
   'create_energy_verification' : ActorMethod<
@@ -177,11 +230,21 @@ export interface GERAM {
   'create_fund_asset' : ActorMethod<[FundAsset], FundAssetResult>,
   'create_fund_position' : ActorMethod<[FundPosition], FundPositionResult>,
   'create_hami_fund' : ActorMethod<[HamiFund], HamiFundResult>,
+  'create_identity' : ActorMethod<
+    [string, IdentityKind, [] | [string], bigint],
+    Result_1
+  >,
   'create_market_snapshot' : ActorMethod<
     [MarketSnapshot],
     MarketSnapshotResult
   >,
   'create_project' : ActorMethod<[Project], ProjectResult>,
+  'create_wallet' : ActorMethod<
+    [string, string, WalletKind, [] | [string], bigint],
+    Result
+  >,
+  'get_account' : ActorMethod<[string], [] | [Account]>,
+  'get_accounts_by_identity' : ActorMethod<[string], Array<Account>>,
   'get_asset' : ActorMethod<[string], [] | [Asset]>,
   'get_certificate' : ActorMethod<[string], [] | [GeramCertificate]>,
   'get_energy_verification' : ActorMethod<[string], [] | [EnergyVerification]>,
@@ -197,8 +260,13 @@ export interface GERAM {
       'lastActionReported' : [] | [bigint],
     }
   >,
+  'get_identity' : ActorMethod<[string], [] | [Identity]>,
+  'get_identity_by_principal' : ActorMethod<[string], [] | [Identity]>,
+  'get_identity_verifications' : ActorMethod<[string], Array<VerificationRef>>,
   'get_market_snapshot' : ActorMethod<[string], [] | [MarketSnapshot]>,
   'get_project' : ActorMethod<[string], [] | [Project]>,
+  'get_wallet' : ActorMethod<[string], [] | [Wallet]>,
+  'get_wallets_by_account' : ActorMethod<[string], Array<Wallet>>,
   'icrc7_atomic_batch_transfers' : ActorMethod<[], [] | [boolean]>,
   'icrc7_balance_of' : ActorMethod<[BalanceOfRequest], BalanceOfResponse>,
   'icrc7_collection_metadata' : ActorMethod<[], CollectionMetadataResponse>,
@@ -221,7 +289,7 @@ export interface GERAM {
   >,
   'icrc7_tokens' : ActorMethod<[[] | [bigint], [] | [bigint]], Array<bigint>>,
   'icrc7_tokens_of' : ActorMethod<
-    [Account, [] | [bigint], [] | [bigint]],
+    [Account__1, [] | [bigint], [] | [bigint]],
     Array<bigint>
   >,
   'icrc7_total_supply' : ActorMethod<[], bigint>,
@@ -230,6 +298,11 @@ export interface GERAM {
     Array<[] | [TransferResult]>
   >,
   'icrc7_tx_window' : ActorMethod<[], [] | [bigint]>,
+  'issue_certificate' : ActorMethod<
+    [IssueCertificateRequest],
+    IssueCertificateResult
+  >,
+  'link_verification' : ActorMethod<[string, string], Result_3>,
   'list_assets' : ActorMethod<[], Array<Asset>>,
   'list_certificates' : ActorMethod<[], Array<GeramCertificate>>,
   'list_energy_verifications' : ActorMethod<[], Array<EnergyVerification>>,
@@ -240,11 +313,29 @@ export interface GERAM {
     Array<FundTransaction>
   >,
   'list_hami_funds' : ActorMethod<[], Array<HamiFund>>,
+  'list_identity_bindings' : ActorMethod<[string], Array<PrincipalBinding>>,
   'list_market_snapshots' : ActorMethod<[], Array<MarketSnapshot>>,
   'list_projects' : ActorMethod<[], Array<Project>>,
   'record_fund_transaction' : ActorMethod<
     [FundTransaction],
     FundTransactionResult
+  >,
+  'suspend_account' : ActorMethod<[string, bigint], Result_2>,
+  'suspend_identity' : ActorMethod<[string, bigint], Result_1>,
+  'suspend_wallet' : ActorMethod<[string, bigint], Result>,
+  'unbind_principal' : ActorMethod<[string, string], Result_4>,
+  'unlink_verification' : ActorMethod<[string, string], Result_3>,
+  'update_account' : ActorMethod<
+    [string, AccountKind, [] | [string], bigint],
+    Result_2
+  >,
+  'update_identity' : ActorMethod<
+    [string, IdentityKind, [] | [string], bigint],
+    Result_1
+  >,
+  'update_wallet' : ActorMethod<
+    [string, WalletKind, [] | [string], bigint],
+    Result
   >,
   'validate_certificate' : ActorMethod<[string], ValidationResult>,
   'validate_fund_asset' : ActorMethod<[string], ValidationResult>,
@@ -296,6 +387,51 @@ export interface HamiFund {
 }
 export type HamiFundResult = { 'ok' : HamiFund } |
   { 'err' : string };
+export interface Identity {
+  'status' : IdentityStatus,
+  'updated_at' : bigint,
+  'kind' : IdentityKind,
+  'created_at' : bigint,
+  'metadata_ref' : [] | [string],
+  'identity_id' : string,
+}
+export type IdentityKind = { 'Institution' : null } |
+  { 'Organization' : null } |
+  { 'Individual' : null } |
+  { 'Other' : null };
+export type IdentityStatus = { 'Active' : null } |
+  { 'Suspended' : null } |
+  { 'Archived' : null } |
+  { 'Pending' : null };
+export interface IssueCertificateRequest {
+  'title' : [] | [string],
+  'asset_type' : [] | [string],
+  'qr_reference' : [] | [string],
+  'issuer_id' : string,
+  'annual_return_bps' : [] | [bigint],
+  'physical_certificate_hash' : [] | [string],
+  'face_value' : bigint,
+  'initial_holder' : Principal,
+  'external_reference' : [] | [string],
+  'description' : [] | [string],
+  'metadata_uri' : [] | [string],
+  'currency' : string,
+  'risk_level' : RiskLevel,
+  'project_id' : string,
+  'certificate_id' : string,
+  'asset_id' : [] | [string],
+  'maturity_timestamp' : bigint,
+  'base_value' : bigint,
+  'physical_certificate_available' : boolean,
+}
+export type IssueCertificateResult = {
+    'ok' : {
+      'transaction_id' : bigint,
+      'certificate' : GeramCertificate,
+      'token_id' : bigint,
+    }
+  } |
+  { 'err' : string };
 export type Map = Array<[string, Value]>;
 export interface MarketSnapshot {
   'supply_level' : [] | [bigint],
@@ -313,7 +449,13 @@ export type MarketSnapshotResult = { 'ok' : MarketSnapshot } |
   { 'err' : string };
 export type Metadata = Array<[string, Value]>;
 export type OwnerOfRequest = Array<bigint>;
-export type OwnerOfResponse = Array<[] | [Account]>;
+export type OwnerOfResponse = Array<[] | [Account__1]>;
+export interface PrincipalBinding {
+  'active' : boolean,
+  'bound_at' : bigint,
+  'identity_id' : string,
+  'principal_ref' : string,
+}
 export interface Project {
   'status' : ProjectStatus,
   'title' : string,
@@ -340,6 +482,16 @@ export type ProjectType = { 'Production' : null } |
   { 'Logistics' : null } |
   { 'Housing' : null } |
   { 'Other' : null };
+export type Result = { 'ok' : Wallet } |
+  { 'err' : Error };
+export type Result_1 = { 'ok' : Identity } |
+  { 'err' : Error };
+export type Result_2 = { 'ok' : Account } |
+  { 'err' : Error };
+export type Result_3 = { 'ok' : VerificationRef } |
+  { 'err' : Error };
+export type Result_4 = { 'ok' : PrincipalBinding } |
+  { 'err' : Error };
 export type RiskLevel = { 'Low' : null } |
   { 'High' : null } |
   { 'Medium' : null };
@@ -350,7 +502,7 @@ export type TokenMetadataItem = [] | [Metadata];
 export type TokenMetadataRequest = Array<bigint>;
 export type TokenMetadataResponse = Array<TokenMetadataItem>;
 export interface TransferArg {
-  'to' : Account,
+  'to' : Account__1,
   'token_id' : bigint,
   'memo' : [] | [Uint8Array],
   'from_subaccount' : [] | [Uint8Array],
@@ -383,6 +535,29 @@ export type Value = { 'Int' : bigint } |
   { 'Blob' : Uint8Array } |
   { 'Text' : string } |
   { 'Array' : Array<Value> };
+export interface VerificationRef {
+  'identity_id' : string,
+  'verification_id' : string,
+}
+export interface Wallet {
+  'account_id' : string,
+  'status' : WalletStatus,
+  'updated_at' : bigint,
+  'kind' : WalletKind,
+  'created_at' : bigint,
+  'metadata_ref' : [] | [string],
+  'wallet_id' : string,
+}
+export type WalletKind = { 'Personal' : null } |
+  { 'Organization' : null } |
+  { 'Custodial' : null } |
+  { 'Other' : null } |
+  { 'Settlement' : null };
+export type WalletStatus = { 'Closed' : null } |
+  { 'Active' : null } |
+  { 'Suspended' : null } |
+  { 'Archived' : null } |
+  { 'Pending' : null };
 export interface _SERVICE extends GERAM {}
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

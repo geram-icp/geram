@@ -137,6 +137,9 @@ public type Account = Account.Account;
     base_value : Nat;
     currency : Text;
 
+    icp_value : Nat;
+    icp_valuation_timestamp : Int;
+
     annual_return_bps : ?Nat;
     risk_level : RiskLevel;
 
@@ -2830,21 +2833,10 @@ for (project in projects.vals()) {
       ("face_value", #Nat(request.face_value)),
       ("base_value", #Nat(request.base_value)),
       ("currency", #Text(request.currency)),
+      ("icp_value", #Nat(request.icp_value)),
+      ("icp_valuation_timestamp", #Int(request.icp_valuation_timestamp)),
       ("maturity_timestamp", #Int(request.maturity_timestamp)),
       ("issue_timestamp", #Int(issueTimestamp)),
-      ("annual_return_bps", #Option(
-        switch (request.annual_return_bps) {
-          case (?value) { ?#Nat(value) };
-          case null { null };
-        }
-      )),
-      ("risk_level", #Text(
-        switch (request.risk_level) {
-          case (#Low) { "Low" };
-          case (#Medium) { "Medium" };
-          case (#High) { "High" };
-        }
-      )),
       ("physical_certificate_available", #Bool(
         request.physical_certificate_available
       )),
@@ -2993,6 +2985,8 @@ for (project in projects.vals()) {
       face_value = request.face_value;
       base_value = request.base_value;
       currency = request.currency;
+      icp_value = request.icp_value;
+      icp_valuation_timestamp = request.icp_valuation_timestamp;
       annual_return_bps = request.annual_return_bps;
       risk_level = request.risk_level;
       physical_certificate_available =
@@ -3490,6 +3484,16 @@ for (project in projects.vals()) {
 
         if (certificate.currency == "") {
           return #err("Certificate validation failed: empty currency");
+        };
+
+        if (certificate.icp_value == 0) {
+          return #err("Certificate validation failed: icp_value is zero");
+        };
+
+        if (certificate.icp_valuation_timestamp <= 0) {
+          return #err(
+            "Certificate validation failed: invalid icp_valuation_timestamp"
+          );
         };
 
         if (certificate.token_id == 0) {
