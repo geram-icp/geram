@@ -324,4 +324,31 @@ module {
     status : EnergyVerificationStatus;
   };
 
+  // ==========================================================
+  // P02-S02-F13 ? CONTRACT & LEGAL REFERENCE FOUNDATION
+  // ==========================================================
+
+  public type ContractStatus = {
+    #DRAFT;
+    #ACTIVE;
+    #EXPIRED;
+    #TERMINATED;
+  };
+
+  public type Contract = {
+    contract_id : Text;
+    contract_number : Text;
+    project_id : Text;
+    contract_type : Text;
+    version : Nat;
+    party_ids : [Text];
+    legal_basis : ?Text;
+    document_hash : ?Text;
+    effective_timestamp : Int;
+    expiry_timestamp : ?Int;
+    status : ContractStatus;
+    created_at : Int;
+  };
+
+
 }

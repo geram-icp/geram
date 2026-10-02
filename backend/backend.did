@@ -316,6 +316,7 @@ type GERAM =
     metadata_ref: opt text, now: int) -> (Result_2);
    create_asset: (asset: Asset) -> (AssetResult);
    create_certificate: (certificate: GeramCertificate) -> (CertificateResult);
+   create_contract: (contract: Contract) -> (ContractResult);
    create_energy_verification: (verification: EnergyVerification) ->
     (EnergyVerificationResult);
    create_fund_asset: (asset: FundAsset) -> (FundAssetResult);
@@ -332,6 +333,7 @@ type GERAM =
    get_accounts_by_identity: (identity_id: text) -> (vec Account) query;
    get_asset: (asset_id: text) -> (opt Asset) query;
    get_certificate: (certificate_id: text) -> (opt GeramCertificate) query;
+   get_contract: (contract_id: text) -> (opt Contract) query;
    get_energy_verification: (verification_id: text) ->
     (opt EnergyVerification) query;
    get_fund_asset: (asset_id: text) -> (opt FundAsset) query;
@@ -383,6 +385,7 @@ type GERAM =
     (Result_3);
    list_assets: () -> (vec Asset) query;
    list_certificates: () -> (vec GeramCertificate) query;
+   list_contracts: () -> (vec Contract) query;
    list_energy_verifications: () -> (vec EnergyVerification) query;
    list_fund_assets: (fund_id: opt text) -> (vec FundAsset) query;
    list_fund_positions: (fund_id: opt text) -> (vec FundPosition) query;
@@ -586,6 +589,33 @@ type EnergyVerification =
    verification_reference: opt text;
    verification_timestamp: int;
    verifier_id: text;
+ };
+type ContractStatus = 
+ variant {
+   ACTIVE;
+   DRAFT;
+   EXPIRED;
+   TERMINATED;
+ };
+type ContractResult = 
+ variant {
+   err: text;
+   ok: Contract;
+ };
+type Contract = 
+ record {
+   contract_id: text;
+   contract_number: text;
+   contract_type: text;
+   created_at: int;
+   document_hash: opt text;
+   effective_timestamp: int;
+   expiry_timestamp: opt int;
+   legal_basis: opt text;
+   party_ids: vec text;
+   project_id: text;
+   status: ContractStatus;
+   version: nat;
  };
 type CollectionMetadataResponse = 
  vec record {

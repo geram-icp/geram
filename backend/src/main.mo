@@ -93,6 +93,8 @@ public type Account = Account.Account;
   public type FinancialTerms = Protocol.FinancialTerms;
   public type Project = Protocol.Project;
   public type GeramCertificate = Protocol.GeramCertificate;
+  public type ContractStatus = Protocol.ContractStatus;
+  public type Contract = Protocol.Contract;
   public type OrganizationRole = Protocol.OrganizationRole;
   public type OrganizationNode = Protocol.OrganizationNode;
   public type MarketSnapshot = Protocol.MarketSnapshot;
@@ -176,6 +178,11 @@ public type Account = Account.Account;
 
   public type CertificateResult = {
     #ok : GeramCertificate;
+    #err : Text;
+  };
+
+  public type ContractResult = {
+    #ok : Contract;
     #err : Text;
   };
 
@@ -2396,6 +2403,7 @@ public shared ({ caller }) func archive_wallet(
   stable var assets : [Asset] = [];
   stable var energyVerifications : [EnergyVerification] = [];
   stable var certificates : [GeramCertificate] = [];
+  stable var contracts : [Contract] = [];
   // ============================================================
   // GERAM-P07.8 — ICRC-7 Token ID Allocator
   // ============================================================
@@ -2459,6 +2467,114 @@ func isOwner(caller : Principal) : Bool {
   // ============================================================
   // P04-01 — Create Project
   // ============================================================
+
+  // ==========================================================
+  // P02-S02-F13 ? Contract Registry
+  // ==========================================================
+
+  public shared ({ caller }) func create_contract(
+    contract : Contract
+  ) : async ContractResult {
+    if (not isOwner(caller)) {
+      return #err("Unauthorized");
+    };
+
+    if (contract.contract_id == "") {
+      return #err("Contract creation failed: contract_id is empty");
+    };
+
+    if (contract.contract_number == "") {
+      return #err("Contract creation failed: contract_number is empty");
+    };
+
+    if (contract.project_id == "") {
+      return #err("Contract creation failed: project_id is empty");
+    };
+
+    if (contract.contract_type == "") {
+      return #err("Contract creation failed: contract_type is empty");
+    };
+
+    if (contract.version == 0) {
+      return #err("Contract creation failed: version is zero");
+    };
+
+    if (contract.effective_timestamp <= 0) {
+      return #err(
+        "Contract creation failed: invalid effective_timestamp"
+      );
+    };
+
+    switch (contract.expiry_timestamp) {
+      case (?expiry) {
+        if (expiry <= contract.effective_timestamp) {
+          return #err(
+            "Contract creation failed: expiry_timestamp must be greater than effective_timestamp"
+          );
+        };
+      };
+      case null {};
+    };
+
+    var duplicate = false;
+    for (existing in contracts.vals()) {
+      if (existing.contract_id == contract.contract_id) {
+        duplicate := true;
+      };
+    };
+
+    if (duplicate) {
+      return #err("Contract already exists");
+    };
+
+    var projectExists = false;
+    for (project in projects.vals()) {
+      if (project.project_id == contract.project_id) {
+        projectExists := true;
+      };
+    };
+
+    if (not projectExists) {
+      return #err("Contract creation failed: project_id not found");
+    };
+
+    let storedContract : Contract = {
+      contract_id = contract.contract_id;
+      contract_number = contract.contract_number;
+      project_id = contract.project_id;
+      contract_type = contract.contract_type;
+      version = contract.version;
+      party_ids = contract.party_ids;
+      legal_basis = contract.legal_basis;
+      document_hash = contract.document_hash;
+      effective_timestamp = contract.effective_timestamp;
+      expiry_timestamp = contract.expiry_timestamp;
+      status = contract.status;
+      created_at = Time.now();
+    };
+
+    contracts := Array.append<Contract>(
+      contracts,
+      [storedContract]
+    );
+
+    #ok(storedContract);
+  };
+
+  public query func get_contract(
+    contract_id : Text
+  ) : async ?Contract {
+    Array.find<Contract>(
+      contracts,
+      func(c : Contract) : Bool {
+        c.contract_id == contract_id
+      }
+    );
+  };
+
+  public query func list_contracts() : async [Contract] {
+    contracts
+  };
 
   public shared ({ caller }) func create_project(
     project : Project
@@ -2721,6 +2837,18 @@ for (project in projects.vals()) {
 
     if (request.currency == "") {
       return #err("Certificate issuance failed: empty currency");
+    };
+
+    if (request.icp_value == 0) {
+      return #err(
+        "Certificate issuance failed: icp_value is zero"
+      );
+    };
+
+    if (request.icp_valuation_timestamp <= 0) {
+      return #err(
+        "Certificate issuance failed: invalid icp_valuation_timestamp"
+      );
     };
 
     // ------------------------------------------------------------
