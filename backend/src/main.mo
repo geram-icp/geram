@@ -57,11 +57,18 @@ shared ({ caller = _owner }) persistent actor class GERAM() = this {
     supported_standards = null;
   };
 
+  // GERAM-P02-S02-F14 ? ICRC-7 persistent State
+  stable var icrc7State : ?ICRC7.State = null;
+
   include ICRC7Mixin({
     ICRC7.defaultMixinArgs(org_icdevs_class_plus_manager) with
-    args = ?geramArgs;
-    pullEnvironment = ?getGeramEnvironment;
-    onInitialize = null;
+      initialState = icrc7State;
+      args = ?geramArgs;
+      pullEnvironment = ?getGeramEnvironment;
+      onInitialize = null;
+      onStorageChange = ?(func(s : ICRC7.State) {
+        icrc7State := ?s;
+      });
   });
 
   // ============================================================
@@ -94,6 +101,21 @@ public type Account = Account.Account;
   public type Project = Protocol.Project;
   public type GeramCertificate = Protocol.GeramCertificate;
   public type ContractStatus = Protocol.ContractStatus;
+  public type EvidenceStatus = Protocol.EvidenceStatus;
+public type Evidence = Protocol.Evidence;
+public type VerificationStatus = Protocol.VerificationStatus;
+public type Verification = Protocol.Verification;
+
+public type EvidenceResult = {
+  #ok : Evidence;
+  #err : Text;
+};
+
+public type VerificationResult = {
+  #ok : Verification;
+  #err : Text;
+};
+
   public type Contract = Protocol.Contract;
   public type OrganizationRole = Protocol.OrganizationRole;
   public type OrganizationNode = Protocol.OrganizationNode;
@@ -121,6 +143,41 @@ public type Account = Account.Account;
 
   public type AssetResult = {
     #ok : Asset;
+    #err : Text;
+  };
+
+  // ==========================================================
+  // GERAM-F15 ? COLLATERAL & ENCUMBRANCE FOUNDATION
+  // ==========================================================
+
+  public type CollateralStatus = {
+    #PENDING;
+    #ACTIVE;
+    #SUSPENDED;
+    #RELEASED;
+  };
+
+  public type Collateral = {
+    collateral_id : Text;
+    asset_id : Text;
+    project_id : Text;
+    contract_id : ?Text;
+    collateral_type : Text;
+    official_reference : Text;
+    authentication_code : Text;
+    valuation_reference : Text;
+    collateral_value : Nat;
+    valuation_timestamp : Int;
+    coverage_bps : Nat;
+    priority : Nat;
+    status : CollateralStatus;
+    created_at : Int;
+    effective_timestamp : Int;
+    release_timestamp : ?Int;
+  };
+
+  public type CollateralResult = {
+    #ok : Collateral;
     #err : Text;
   };
 
@@ -2401,8 +2458,11 @@ public shared ({ caller }) func archive_wallet(
 
   stable var projects : [Project] = [];
   stable var assets : [Asset] = [];
+  stable var collaterals : [Collateral] = [];
   stable var energyVerifications : [EnergyVerification] = [];
   stable var certificates : [GeramCertificate] = [];
+  stable var evidences : [Evidence] = [];
+  stable var verifications : [Verification] = [];
   stable var contracts : [Contract] = [];
   // ============================================================
   // GERAM-P07.8 — ICRC-7 Token ID Allocator
@@ -2576,6 +2636,210 @@ func isOwner(caller : Principal) : Bool {
     contracts
   };
 
+  // P02-S02-F14 ? TRUST & EVIDENCE FOUNDATION
+
+  public shared ({ caller }) func create_evidence(
+    evidence : Evidence
+  ) : async EvidenceResult {
+    if (not isOwner(caller)) {
+      return #err("Unauthorized");
+    };
+
+
+    if (evidence.evidence_id == "") {
+      return #err("Evidence creation failed: evidence_id is empty");
+    };
+
+    if (evidence.subject_type == "") {
+      return #err("Evidence creation failed: subject_type is empty");
+    };
+
+    if (evidence.subject_id == "") {
+      return #err("Evidence creation failed: subject_id is empty");
+    };
+
+    if (evidence.evidence_type == "") {
+      return #err("Evidence creation failed: evidence_type is empty");
+    };
+
+    if (evidence.title == "") {
+      return #err("Evidence creation failed: title is empty");
+    };
+
+    if (evidence.issuer_id == "") {
+      return #err("Evidence creation failed: issuer_id is empty");
+    };
+
+    if (evidence.issued_at <= 0) {
+      return #err(
+        "Evidence creation failed: invalid issued_at"
+      );
+    };
+
+    switch (evidence.valid_until) {
+      case (?validUntil) {
+        if (validUntil <= evidence.issued_at) {
+          return #err(
+            "Evidence creation failed: valid_until must be greater than issued_at"
+          );
+        };
+      };
+      case null {};
+    };
+
+    for (existing in evidences.vals()) {
+      if (existing.evidence_id == evidence.evidence_id) {
+        return #err("Evidence already exists");
+      };
+    };
+
+    let storedEvidence : Evidence = {
+      evidence_id = evidence.evidence_id;
+      subject_type = evidence.subject_type;
+      subject_id = evidence.subject_id;
+      evidence_type = evidence.evidence_type;
+      title = evidence.title;
+      description = evidence.description;
+      source_reference = evidence.source_reference;
+      document_hash = evidence.document_hash;
+      issuer_id = evidence.issuer_id;
+      issued_at = evidence.issued_at;
+      valid_until = evidence.valid_until;
+      status = evidence.status;
+      created_at = Time.now();
+    };
+
+    evidences := Array.append<Evidence>(
+      evidences,
+      [storedEvidence]
+    );
+
+    #ok(storedEvidence);
+  };
+
+  public query func get_evidence(
+    evidence_id : Text
+  ) : async ?Evidence {
+    Array.find<Evidence>(
+      evidences,
+      func(e : Evidence) : Bool {
+        e.evidence_id == evidence_id
+      }
+    );
+  };
+
+  public query func list_evidence() : async [Evidence] {
+    evidences
+  };
+
+  public shared ({ caller }) func create_verification(
+    verification : Verification
+  ) : async VerificationResult {
+    if (not isOwner(caller)) {
+      return #err("Unauthorized");
+    };
+
+    if (verification.verification_id == "") {
+      return #err(
+        "Verification creation failed: verification_id is empty"
+      );
+    };
+
+    if (verification.subject_type == "") {
+      return #err(
+        "Verification creation failed: subject_type is empty"
+      );
+    };
+
+    if (verification.subject_id == "") {
+      return #err(
+        "Verification creation failed: subject_id is empty"
+      );
+    };
+
+    if (verification.verification_method == "") {
+      return #err(
+        "Verification creation failed: verification_method is empty"
+      );
+    };
+
+    if (verification.verifier_id == "") {
+      return #err(
+        "Verification creation failed: verifier_id is empty"
+      );
+    };
+
+    if (verification.verified_at <= 0) {
+      return #err(
+        "Verification creation failed: invalid verified_at"
+      );
+    };
+
+    for (existing in verifications.vals()) {
+      if (
+        existing.verification_id ==
+        verification.verification_id
+      ) {
+        return #err("Verification already exists");
+      };
+    };
+
+    switch (verification.evidence_id) {
+      case (?evidenceId) {
+        var evidenceExists = false;
+
+        for (evidence in evidences.vals()) {
+          if (evidence.evidence_id == evidenceId) {
+            evidenceExists := true;
+          };
+        };
+
+        if (not evidenceExists) {
+          return #err(
+            "Verification creation failed: evidence_id not found"
+          );
+        };
+      };
+      case null {};
+    };
+
+    let storedVerification : Verification = {
+      verification_id = verification.verification_id;
+      subject_type = verification.subject_type;
+      subject_id = verification.subject_id;
+      evidence_id = verification.evidence_id;
+      verification_method = verification.verification_method;
+      verifier_id = verification.verifier_id;
+      verification_reference =
+        verification.verification_reference;
+      verified_at = verification.verified_at;
+      status = verification.status;
+      created_at = Time.now();
+    };
+
+    verifications := Array.append<Verification>(
+      verifications,
+      [storedVerification]
+    );
+
+    #ok(storedVerification);
+  };
+
+  public query func get_verification(
+    verification_id : Text
+  ) : async ?Verification {
+    Array.find<Verification>(
+      verifications,
+      func(v : Verification) : Bool {
+        v.verification_id == verification_id
+      }
+    );
+  };
+
+  public query func list_verifications() : async [Verification] {
+    verifications
+  };
+
   public shared ({ caller }) func create_project(
     project : Project
   ) : async ProjectResult {
@@ -2673,6 +2937,182 @@ func isOwner(caller : Principal) : Bool {
   public query func list_assets() : async [Asset] {
     assets
   };
+
+  // ==========================================================
+  // GERAM-F15 ? COLLATERAL & ENCUMBRANCE API
+  // ==========================================================
+
+  public shared ({ caller }) func create_collateral(
+    collateral : Collateral
+  ) : async CollateralResult {
+
+    if (not isOwner(caller)) {
+      return #err("Unauthorized");
+    };
+
+    if (collateral.collateral_id == "") {
+      return #err("Collateral ID is required");
+    };
+
+    for (existing in collaterals.vals()) {
+      if (existing.collateral_id == collateral.collateral_id) {
+        return #err("Collateral already exists");
+      };
+    };
+
+    var assetExists = false;
+    for (asset in assets.vals()) {
+      if (asset.asset_id == collateral.asset_id) {
+        assetExists := true;
+      };
+    };
+
+    if (not assetExists) {
+      return #err("Referenced asset does not exist");
+    };
+
+    var projectExists = false;
+    for (project in projects.vals()) {
+      if (project.project_id == collateral.project_id) {
+        projectExists := true;
+      };
+    };
+
+    if (not projectExists) {
+      return #err("Referenced project does not exist");
+    };
+
+    switch (collateral.contract_id) {
+      case (?contract_id) {
+        var contractExists = false;
+
+        for (contract in contracts.vals()) {
+          if (contract.contract_id == contract_id) {
+            contractExists := true;
+
+            if (contract.project_id != collateral.project_id) {
+              return #err("Contract does not belong to project");
+            };
+          };
+        };
+
+        if (not contractExists) {
+          return #err("Referenced contract does not exist");
+        };
+      };
+      case (null) {};
+    };
+
+    var activeCollateralExists = false;
+
+    for (existing in collaterals.vals()) {
+      if (
+        existing.asset_id == collateral.asset_id
+        and existing.status == #ACTIVE
+      ) {
+        activeCollateralExists := true;
+      };
+    };
+
+    if (activeCollateralExists) {
+      return #err("Asset already has active collateral");
+    };
+
+    if (collateral.collateral_value == 0) {
+      return #err("Collateral value must be greater than zero");
+    };
+
+    if (collateral.valuation_timestamp <= 0) {
+      return #err("Invalid valuation timestamp");
+    };
+
+    if (collateral.coverage_bps > 10000) {
+      return #err("Coverage must not exceed 10000 bps");
+    };
+
+    let stored : Collateral = {
+      collateral with
+      created_at = Time.now();
+    };
+
+    collaterals := Array.append<Collateral>(collaterals, [stored]);
+
+    #ok(stored)
+  };
+
+  public query func get_collateral(
+    collateral_id : Text
+  ) : async ?Collateral {
+
+    for (collateral in collaterals.vals()) {
+      if (collateral.collateral_id == collateral_id) {
+        return ?collateral;
+      };
+    };
+
+    null
+  };
+
+  public query func list_collaterals() : async [Collateral] {
+    collaterals
+  };
+
+  public shared ({ caller }) func release_collateral(
+    collateral_id : Text,
+    now : Int
+  ) : async CollateralResult {
+
+    if (not isOwner(caller)) {
+      return #err("Unauthorized");
+    };
+
+    if (now <= 0) {
+      return #err("Invalid release timestamp");
+    };
+
+    var found = false;
+    var result : ?Collateral = null;
+
+    let updated = Array.map<Collateral, Collateral>(
+      collaterals,
+      func(existing : Collateral) : Collateral {
+        if (existing.collateral_id == collateral_id) {
+          found := true;
+
+          if (existing.status == #RELEASED) {
+            result := ?existing;
+            return existing;
+          };
+
+          let released : Collateral = {
+            existing with
+            status = #RELEASED;
+            release_timestamp = ?now;
+          };
+
+          result := ?released;
+          return released;
+        };
+
+        existing
+      }
+    );
+
+    if (not found) {
+      return #err("Collateral does not exist");
+    };
+
+    switch (result) {
+      case (?released) {
+        collaterals := updated;
+        #ok(released)
+      };
+      case (null) {
+        #err("Collateral update failed")
+      };
+    };
+  };
+
 
   // ============================================================
   // GERAM-P06 — ENERGY VERIFICATION API

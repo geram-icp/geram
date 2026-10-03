@@ -24,10 +24,36 @@ type Wallet =
    updated_at: int;
    wallet_id: text;
  };
+type VerificationStatus = 
+ variant {
+   EXPIRED;
+   PENDING;
+   REJECTED;
+   REVOKED;
+   VERIFIED;
+ };
+type VerificationResult = 
+ variant {
+   err: text;
+   ok: Verification;
+ };
 type VerificationRef = 
  record {
    identity_id: text;
    verification_id: text;
+ };
+type Verification = 
+ record {
+   created_at: int;
+   evidence_id: opt text;
+   status: VerificationStatus;
+   subject_id: text;
+   subject_type: text;
+   verification_id: text;
+   verification_method: text;
+   verification_reference: opt text;
+   verified_at: int;
+   verifier_id: text;
  };
 type Value = 
  variant {
@@ -316,9 +342,11 @@ type GERAM =
     metadata_ref: opt text, now: int) -> (Result_2);
    create_asset: (asset: Asset) -> (AssetResult);
    create_certificate: (certificate: GeramCertificate) -> (CertificateResult);
+   create_collateral: (collateral: Collateral) -> (CollateralResult);
    create_contract: (contract: Contract) -> (ContractResult);
    create_energy_verification: (verification: EnergyVerification) ->
     (EnergyVerificationResult);
+   create_evidence: (evidence: Evidence) -> (EvidenceResult);
    create_fund_asset: (asset: FundAsset) -> (FundAssetResult);
    create_fund_position: (position: FundPosition) -> (FundPositionResult);
    create_hami_fund: (fund: HamiFund) -> (HamiFundResult);
@@ -327,15 +355,18 @@ type GERAM =
    create_market_snapshot: (snapshot: MarketSnapshot) ->
     (MarketSnapshotResult);
    create_project: (project: Project) -> (ProjectResult);
+   create_verification: (verification: Verification) -> (VerificationResult);
    create_wallet: (wallet_id: text, account_id: text, kind: WalletKind,
     metadata_ref: opt text, now: int) -> (Result);
    get_account: (account_id: text) -> (opt Account) query;
    get_accounts_by_identity: (identity_id: text) -> (vec Account) query;
    get_asset: (asset_id: text) -> (opt Asset) query;
    get_certificate: (certificate_id: text) -> (opt GeramCertificate) query;
+   get_collateral: (collateral_id: text) -> (opt Collateral) query;
    get_contract: (contract_id: text) -> (opt Contract) query;
    get_energy_verification: (verification_id: text) ->
     (opt EnergyVerification) query;
+   get_evidence: (evidence_id: text) -> (opt Evidence) query;
    get_fund_asset: (asset_id: text) -> (opt FundAsset) query;
    get_fund_position: (position_id: text) -> (opt FundPosition) query;
    get_fund_transaction: (transaction_id: text) ->
@@ -353,6 +384,7 @@ type GERAM =
     (vec VerificationRef) query;
    get_market_snapshot: (certificate_id: text) -> (opt MarketSnapshot) query;
    get_project: (project_id: text) -> (opt Project) query;
+   get_verification: (verification_id: text) -> (opt Verification) query;
    get_wallet: (wallet_id: text) -> (opt Wallet) query;
    get_wallets_by_account: (account_id: text) -> (vec Wallet) query;
    icrc7_atomic_batch_transfers: () -> (opt bool) query;
@@ -385,8 +417,10 @@ type GERAM =
     (Result_3);
    list_assets: () -> (vec Asset) query;
    list_certificates: () -> (vec GeramCertificate) query;
+   list_collaterals: () -> (vec Collateral) query;
    list_contracts: () -> (vec Contract) query;
    list_energy_verifications: () -> (vec EnergyVerification) query;
+   list_evidence: () -> (vec Evidence) query;
    list_fund_assets: (fund_id: opt text) -> (vec FundAsset) query;
    list_fund_positions: (fund_id: opt text) -> (vec FundPosition) query;
    list_fund_transactions: (fund_id: opt text) -> (vec FundTransaction) query;
@@ -395,8 +429,10 @@ type GERAM =
     (vec PrincipalBinding) query;
    list_market_snapshots: () -> (vec MarketSnapshot) query;
    list_projects: () -> (vec Project) query;
+   list_verifications: () -> (vec Verification) query;
    record_fund_transaction: (transaction: FundTransaction) ->
     (FundTransactionResult);
+   release_collateral: (collateral_id: text, now: int) -> (CollateralResult);
    suspend_account: (account_id: text, now: int) -> (Result_2);
    suspend_identity: (identity_id: text, now: int) -> (Result_1);
    suspend_wallet: (wallet_id: text, now: int) -> (Result);
@@ -530,6 +566,35 @@ type FinancialTerms =
    liquidity_guaranteed: bool;
    maturity_timestamp: int;
  };
+type EvidenceStatus = 
+ variant {
+   ACTIVE;
+   ARCHIVED;
+   DRAFT;
+   EXPIRED;
+   REVOKED;
+ };
+type EvidenceResult = 
+ variant {
+   err: text;
+   ok: Evidence;
+ };
+type Evidence = 
+ record {
+   created_at: int;
+   description: text;
+   document_hash: opt text;
+   evidence_id: text;
+   evidence_type: text;
+   issued_at: int;
+   issuer_id: text;
+   source_reference: opt text;
+   status: EvidenceStatus;
+   subject_id: text;
+   subject_type: text;
+   title: text;
+   valid_until: opt int;
+ };
 type ErrorState = 
  variant {
    Failed;
@@ -622,6 +687,37 @@ type CollectionMetadataResponse =
        text;
        Value;
      };
+type CollateralStatus = 
+ variant {
+   ACTIVE;
+   PENDING;
+   RELEASED;
+   SUSPENDED;
+ };
+type CollateralResult = 
+ variant {
+   err: text;
+   ok: Collateral;
+ };
+type Collateral = 
+ record {
+   asset_id: text;
+   authentication_code: text;
+   collateral_id: text;
+   collateral_type: text;
+   collateral_value: nat;
+   contract_id: opt text;
+   coverage_bps: nat;
+   created_at: int;
+   effective_timestamp: int;
+   official_reference: text;
+   priority: nat;
+   project_id: text;
+   release_timestamp: opt int;
+   status: CollateralStatus;
+   valuation_reference: text;
+   valuation_timestamp: int;
+ };
 type CertificateResult = 
  variant {
    err: text;
