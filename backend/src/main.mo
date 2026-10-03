@@ -181,6 +181,34 @@ public type VerificationResult = {
     #err : Text;
   };
 
+  public type ValuationStatus = {
+    #PENDING;
+    #ACTIVE;
+    #SUPERSEDED;
+    #REVOKED;
+  };
+
+  public type ValuationRecord = {
+    valuation_id : Text;
+    subject_type : Text;
+    subject_id : Text;
+    project_id : Text;
+    base_value : Nat;
+    valuation_unit : Text;
+    valuation_date : Int;
+    expert_reference : ?Text;
+    methodology : ?Text;
+    document_hash : ?Text;
+    status : ValuationStatus;
+    version : Nat;
+    created_at : Int;
+  };
+
+  public type ValuationResult = {
+    #ok : ValuationRecord;
+    #err : Text;
+  };
+
   // ============================================================
   // GERAM-P07.8 — Certificate Issuance Types
   // ============================================================
@@ -2459,6 +2487,7 @@ public shared ({ caller }) func archive_wallet(
   stable var projects : [Project] = [];
   stable var assets : [Asset] = [];
   stable var collaterals : [Collateral] = [];
+  stable var valuations : [ValuationRecord] = [];
   stable var energyVerifications : [EnergyVerification] = [];
   stable var certificates : [GeramCertificate] = [];
   stable var evidences : [Evidence] = [];
@@ -2941,6 +2970,108 @@ func isOwner(caller : Principal) : Bool {
   // ==========================================================
   // GERAM-F15 ? COLLATERAL & ENCUMBRANCE API
   // ==========================================================
+
+  // ==========================================================
+  // GERAM-F16 ? VALUATION REGISTRY FOUNDATION
+  // ==========================================================
+
+  public shared ({ caller }) func create_valuation(
+    valuation : ValuationRecord
+  ) : async ValuationResult {
+    if (not isOwner(caller)) {
+      return #err("Unauthorized");
+    };
+
+    if (valuation.valuation_id == "") {
+      return #err("Valuation ID is required");
+    };
+
+    for (existing in valuations.vals()) {
+      if (existing.valuation_id == valuation.valuation_id) {
+        return #err("Valuation already exists");
+      };
+    };
+
+    if (valuation.subject_type != "PROJECT" and valuation.subject_type != "ASSET") {
+      return #err("Invalid valuation subject type");
+    };
+
+    if (valuation.subject_id == "") {
+      return #err("Valuation subject ID is required");
+    };
+
+    if (valuation.project_id == "") {
+      return #err("Project ID is required");
+    };
+
+    if (valuation.base_value == 0) {
+      return #err("Valuation base value must be greater than zero");
+    };
+
+    if (valuation.valuation_unit == "") {
+      return #err("Valuation unit is required");
+    };
+
+    if (valuation.valuation_date <= 0) {
+      return #err("Valuation date must be greater than zero");
+    };
+
+    if (valuation.version == 0) {
+      return #err("Valuation version must be greater than zero");
+    };
+
+    var project_found = false;
+    for (project in projects.vals()) {
+      if (project.project_id == valuation.project_id) {
+        project_found := true;
+      };
+    };
+
+    if (not project_found) {
+      return #err("Project does not exist");
+    };
+
+    if (valuation.subject_type == "ASSET") {
+      var asset_found = false;
+
+      for (asset in assets.vals()) {
+        if (
+          asset.asset_id == valuation.subject_id and
+          asset.project_id == valuation.project_id
+        ) {
+          asset_found := true;
+        };
+      };
+
+      if (not asset_found) {
+        return #err("Asset does not exist or does not belong to project");
+      };
+    };
+
+    let stored : ValuationRecord = {
+      valuation with
+      created_at = Time.now();
+    };
+
+    valuations := Array.append<ValuationRecord>(valuations, [stored]);
+    #ok(stored)
+  };
+
+  public query func get_valuation(
+    valuation_id : Text
+  ) : async ?ValuationRecord {
+    for (valuation in valuations.vals()) {
+      if (valuation.valuation_id == valuation_id) {
+        return ?valuation;
+      };
+    };
+
+    null
+  };
+
+  public query func list_valuations() : async [ValuationRecord] {
+    valuations
+  };
 
   public shared ({ caller }) func create_collateral(
     collateral : Collateral

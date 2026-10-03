@@ -1,4 +1,4 @@
-type WalletStatus = 
+type WalletStatus =
  variant {
    Active;
    Archived;
@@ -6,7 +6,7 @@ type WalletStatus =
    Pending;
    Suspended;
  };
-type WalletKind = 
+type WalletKind =
  variant {
    Custodial;
    Organization;
@@ -14,7 +14,7 @@ type WalletKind =
    Personal;
    Settlement;
  };
-type Wallet = 
+type Wallet =
  record {
    account_id: text;
    created_at: int;
@@ -24,7 +24,7 @@ type Wallet =
    updated_at: int;
    wallet_id: text;
  };
-type VerificationStatus = 
+type VerificationStatus =
  variant {
    EXPIRED;
    PENDING;
@@ -32,17 +32,17 @@ type VerificationStatus =
    REVOKED;
    VERIFIED;
  };
-type VerificationResult = 
+type VerificationResult =
  variant {
    err: text;
    ok: Verification;
  };
-type VerificationRef = 
+type VerificationRef =
  record {
    identity_id: text;
    verification_id: text;
  };
-type Verification = 
+type Verification =
  record {
    created_at: int;
    evidence_id: opt text;
@@ -55,7 +55,7 @@ type Verification =
    verified_at: int;
    verifier_id: text;
  };
-type Value = 
+type Value =
  variant {
    Array: vec Value;
    Blob: blob;
@@ -64,7 +64,35 @@ type Value =
    Nat: nat;
    Text: text;
  };
-type Valuation = 
+type ValuationStatus =
+ variant {
+   ACTIVE;
+   PENDING;
+   REVOKED;
+   SUPERSEDED;
+ };
+type ValuationResult =
+ variant {
+   err: text;
+   ok: ValuationRecord;
+ };
+type ValuationRecord =
+ record {
+   base_value: nat;
+   created_at: int;
+   document_hash: opt text;
+   expert_reference: opt text;
+   methodology: opt text;
+   project_id: text;
+   status: ValuationStatus;
+   subject_id: text;
+   subject_type: text;
+   valuation_date: int;
+   valuation_id: text;
+   valuation_unit: text;
+   version: nat;
+ };
+type Valuation =
  record {
    base_value: nat;
    expert_reference: opt text;
@@ -72,17 +100,17 @@ type Valuation =
    valuation_date: int;
    valuation_unit: text;
  };
-type ValidationResult = 
+type ValidationResult =
  variant {
    err: text;
    ok: text;
  };
-type TransferResult = 
+type TransferResult =
  variant {
    Err: TransferError;
    Ok: nat;
  };
-type TransferError = 
+type TransferError =
  variant {
    CreatedInFuture: record {ledger_time: nat64;};
    Duplicate: record {duplicate_of: nat;};
@@ -99,7 +127,7 @@ type TransferError =
    TooOld;
    Unauthorized;
  };
-type TransferArg = 
+type TransferArg =
  record {
    created_at_time: opt nat64;
    from_subaccount: opt blob;
@@ -110,43 +138,43 @@ type TransferArg =
 type TokenMetadataResponse = vec TokenMetadataItem;
 type TokenMetadataRequest = vec nat;
 type TokenMetadataItem = opt Metadata;
-type SupportedStandardsResponse = 
+type SupportedStandardsResponse =
  vec record {
        name: text;
        url: text;
      };
-type RiskLevel = 
+type RiskLevel =
  variant {
    High;
    Low;
    Medium;
  };
-type Result_4 = 
+type Result_4 =
  variant {
    err: Error;
    ok: PrincipalBinding;
  };
-type Result_3 = 
+type Result_3 =
  variant {
    err: Error;
    ok: VerificationRef;
  };
-type Result_2 = 
+type Result_2 =
  variant {
    err: Error;
    ok: Account;
  };
-type Result_1 = 
+type Result_1 =
  variant {
    err: Error;
    ok: Identity;
  };
-type Result = 
+type Result =
  variant {
    err: Error;
    ok: Wallet;
  };
-type ProjectType = 
+type ProjectType =
  variant {
    Energy;
    Housing;
@@ -155,7 +183,7 @@ type ProjectType =
    Other;
    Production;
  };
-type ProjectStatus = 
+type ProjectStatus =
  variant {
    Active;
    Approved;
@@ -164,12 +192,12 @@ type ProjectStatus =
    Matured;
    Suspended;
  };
-type ProjectResult = 
+type ProjectResult =
  variant {
    err: text;
    ok: Project;
  };
-type Project = 
+type Project =
  record {
    asset: AssetReference;
    description: text;
@@ -182,7 +210,7 @@ type Project =
    title: text;
    valuation: Valuation;
  };
-type PrincipalBinding = 
+type PrincipalBinding =
  record {
    active: bool;
    bound_at: int;
@@ -191,17 +219,17 @@ type PrincipalBinding =
  };
 type OwnerOfResponse = vec opt Account__1;
 type OwnerOfRequest = vec nat;
-type Metadata = 
+type Metadata =
  vec record {
        text;
        Value;
      };
-type MarketSnapshotResult = 
+type MarketSnapshotResult =
  variant {
    err: text;
    ok: MarketSnapshot;
  };
-type MarketSnapshot = 
+type MarketSnapshot =
  record {
    annual_return_bps: opt nat;
    base_value: nat;
@@ -214,12 +242,12 @@ type MarketSnapshot =
    valuation_reference: opt text;
    valuation_timestamp: int;
  };
-type Map = 
+type Map =
  vec record {
        text;
        Value;
      };
-type IssueCertificateResult = 
+type IssueCertificateResult =
  variant {
    err: text;
    ok:
@@ -229,7 +257,7 @@ type IssueCertificateResult =
       transaction_id: nat;
     };
  };
-type IssueCertificateRequest = 
+type IssueCertificateRequest =
  record {
    annual_return_bps: opt nat;
    asset_id: opt text;
@@ -253,21 +281,21 @@ type IssueCertificateRequest =
    risk_level: RiskLevel;
    title: opt text;
  };
-type IdentityStatus = 
+type IdentityStatus =
  variant {
    Active;
    Archived;
    Pending;
    Suspended;
  };
-type IdentityKind = 
+type IdentityKind =
  variant {
    Individual;
    Institution;
    Organization;
    Other;
  };
-type Identity = 
+type Identity =
  record {
    created_at: int;
    identity_id: text;
@@ -276,12 +304,12 @@ type Identity =
    status: IdentityStatus;
    updated_at: int;
  };
-type HamiFundResult = 
+type HamiFundResult =
  variant {
    err: text;
    ok: HamiFund;
  };
-type HamiFund = 
+type HamiFund =
  record {
    activation_timestamp: opt int;
    ai_model: opt AIModelReference;
@@ -306,7 +334,7 @@ type HamiFund =
    target_value: nat;
    title: text;
  };
-type GeramCertificate = 
+type GeramCertificate =
  record {
    annual_return_bps: opt nat;
    base_value: nat;
@@ -326,7 +354,7 @@ type GeramCertificate =
    risk_level: RiskLevel;
    token_id: nat;
  };
-type GERAM = 
+type GERAM =
  service {
    activate_account: (account_id: text, now: int) -> (Result_2);
    activate_identity: (identity_id: text, now: int) -> (Result_1);
@@ -355,6 +383,7 @@ type GERAM =
    create_market_snapshot: (snapshot: MarketSnapshot) ->
     (MarketSnapshotResult);
    create_project: (project: Project) -> (ProjectResult);
+   create_valuation: (valuation: ValuationRecord) -> (ValuationResult);
    create_verification: (verification: Verification) -> (VerificationResult);
    create_wallet: (wallet_id: text, account_id: text, kind: WalletKind,
     metadata_ref: opt text, now: int) -> (Result);
@@ -384,6 +413,7 @@ type GERAM =
     (vec VerificationRef) query;
    get_market_snapshot: (certificate_id: text) -> (opt MarketSnapshot) query;
    get_project: (project_id: text) -> (opt Project) query;
+   get_valuation: (valuation_id: text) -> (opt ValuationRecord) query;
    get_verification: (verification_id: text) -> (opt Verification) query;
    get_wallet: (wallet_id: text) -> (opt Wallet) query;
    get_wallets_by_account: (account_id: text) -> (vec Wallet) query;
@@ -429,6 +459,7 @@ type GERAM =
     (vec PrincipalBinding) query;
    list_market_snapshots: () -> (vec MarketSnapshot) query;
    list_projects: () -> (vec Project) query;
+   list_valuations: () -> (vec ValuationRecord) query;
    list_verifications: () -> (vec Verification) query;
    record_fund_transaction: (transaction: FundTransaction) ->
     (FundTransactionResult);
@@ -453,7 +484,7 @@ type GERAM =
    validate_hami_fund: (fund_id: text) -> (ValidationResult) query;
    validate_project: (project_id: text) -> (ValidationResult) query;
  };
-type FundType = 
+type FundType =
  variant {
    Energy;
    Housing;
@@ -464,7 +495,7 @@ type FundType =
    Production;
    Tourism;
  };
-type FundTransactionType = 
+type FundTransactionType =
  variant {
    Adjustment;
    AssetAcquire;
@@ -475,12 +506,12 @@ type FundTransactionType =
    Rebalance;
    Withdrawal;
  };
-type FundTransactionResult = 
+type FundTransactionResult =
  variant {
    err: text;
    ok: FundTransaction;
  };
-type FundTransaction = 
+type FundTransaction =
  record {
    actor_principal: principal;
    ai_generated: bool;
@@ -495,7 +526,7 @@ type FundTransaction =
    transaction_type: FundTransactionType;
    value: nat;
  };
-type FundStrategy = 
+type FundStrategy =
  variant {
    Collateral;
    Hold;
@@ -504,7 +535,7 @@ type FundStrategy =
    MultiStrategy;
    Trade;
  };
-type FundStatus = 
+type FundStatus =
  variant {
    Active;
    Closed;
@@ -512,7 +543,7 @@ type FundStatus =
    Matured;
    Paused;
  };
-type FundRiskParameters = 
+type FundRiskParameters =
  record {
    max_asset_weight_bps: nat;
    max_drawdown_bps: nat;
@@ -520,12 +551,12 @@ type FundRiskParameters =
    max_single_project_weight_bps: nat;
    min_liquidity_bps: nat;
  };
-type FundPositionResult = 
+type FundPositionResult =
  variant {
    err: text;
    ok: FundPosition;
  };
-type FundPosition = 
+type FundPosition =
  record {
    active: bool;
    asset_count: nat;
@@ -538,12 +569,12 @@ type FundPosition =
    share_units: nat;
    updated_at: int;
  };
-type FundAssetResult = 
+type FundAssetResult =
  variant {
    err: text;
    ok: FundAsset;
  };
-type FundAsset = 
+type FundAsset =
  record {
    acquisition_value: nat;
    active: bool;
@@ -558,7 +589,7 @@ type FundAsset =
    token_id: opt nat;
    valuation_timestamp: int;
  };
-type FinancialTerms = 
+type FinancialTerms =
  record {
    annual_return_bps: opt nat;
    currency: text;
@@ -566,7 +597,7 @@ type FinancialTerms =
    liquidity_guaranteed: bool;
    maturity_timestamp: int;
  };
-type EvidenceStatus = 
+type EvidenceStatus =
  variant {
    ACTIVE;
    ARCHIVED;
@@ -574,12 +605,12 @@ type EvidenceStatus =
    EXPIRED;
    REVOKED;
  };
-type EvidenceResult = 
+type EvidenceResult =
  variant {
    err: text;
    ok: Evidence;
  };
-type Evidence = 
+type Evidence =
  record {
    created_at: int;
    description: text;
@@ -595,12 +626,12 @@ type Evidence =
    title: text;
    valid_until: opt int;
  };
-type ErrorState = 
+type ErrorState =
  variant {
    Failed;
    Unknown;
  };
-type ErrorCategory = 
+type ErrorCategory =
  variant {
    Authorization;
    BusinessRule;
@@ -613,7 +644,7 @@ type ErrorCategory =
    System;
    Validation;
  };
-type Error = 
+type Error =
  record {
    category: ErrorCategory;
    code: text;
@@ -622,7 +653,7 @@ type Error =
    retryable: bool;
    state: ErrorState;
  };
-type EnergyVerificationStatus = 
+type EnergyVerificationStatus =
  variant {
    Draft;
    Expired;
@@ -630,12 +661,12 @@ type EnergyVerificationStatus =
    Rejected;
    Verified;
  };
-type EnergyVerificationResult = 
+type EnergyVerificationResult =
  variant {
    err: text;
    ok: EnergyVerification;
  };
-type EnergyVerification = 
+type EnergyVerification =
  record {
    asset_id: text;
    baseline_energy_m3: nat;
@@ -655,19 +686,19 @@ type EnergyVerification =
    verification_timestamp: int;
    verifier_id: text;
  };
-type ContractStatus = 
+type ContractStatus =
  variant {
    ACTIVE;
    DRAFT;
    EXPIRED;
    TERMINATED;
  };
-type ContractResult = 
+type ContractResult =
  variant {
    err: text;
    ok: Contract;
  };
-type Contract = 
+type Contract =
  record {
    contract_id: text;
    contract_number: text;
@@ -682,24 +713,24 @@ type Contract =
    status: ContractStatus;
    version: nat;
  };
-type CollectionMetadataResponse = 
+type CollectionMetadataResponse =
  vec record {
        text;
        Value;
      };
-type CollateralStatus = 
+type CollateralStatus =
  variant {
    ACTIVE;
    PENDING;
    RELEASED;
    SUSPENDED;
  };
-type CollateralResult = 
+type CollateralResult =
  variant {
    err: text;
    ok: Collateral;
  };
-type Collateral = 
+type Collateral =
  record {
    asset_id: text;
    authentication_code: text;
@@ -718,33 +749,33 @@ type Collateral =
    valuation_reference: text;
    valuation_timestamp: int;
  };
-type CertificateResult = 
+type CertificateResult =
  variant {
    err: text;
    ok: GeramCertificate;
  };
 type BalanceOfResponse = vec nat;
 type BalanceOfRequest = vec Account__1;
-type AssetStatus = 
+type AssetStatus =
  variant {
    Active;
    Draft;
    Inactive;
    Retired;
  };
-type AssetResult = 
+type AssetResult =
  variant {
    err: text;
    ok: Asset;
  };
-type AssetReference = 
+type AssetReference =
  record {
    asset_id: text;
    asset_type: text;
    description: text;
    registry_reference: opt text;
  };
-type Asset = 
+type Asset =
  record {
    asset_id: text;
    asset_type: text;
@@ -757,12 +788,12 @@ type Asset =
    status: AssetStatus;
    title: text;
  };
-type Account__1 = 
+type Account__1 =
  record {
    owner: principal;
    subaccount: opt blob;
  };
-type AccountStatus = 
+type AccountStatus =
  variant {
    Active;
    Archived;
@@ -770,7 +801,7 @@ type AccountStatus =
    Pending;
    Suspended;
  };
-type AccountKind = 
+type AccountKind =
  variant {
    Custodial;
    Institution;
@@ -779,7 +810,7 @@ type AccountKind =
    Personal;
    Settlement;
  };
-type Account = 
+type Account =
  record {
    account_id: text;
    created_at: int;
@@ -789,14 +820,14 @@ type Account =
    status: AccountStatus;
    updated_at: int;
  };
-type AIStrategyStatus = 
+type AIStrategyStatus =
  variant {
    Advisory;
    Assisted;
    Automated;
    Disabled;
  };
-type AIModelReference = 
+type AIModelReference =
  record {
    enabled: bool;
    endpoint_reference: opt text;
