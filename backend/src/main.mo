@@ -42,7 +42,7 @@ shared ({ caller = _owner }) persistent actor class GERAM() = this {
     deployer = _owner;
     symbol = ?"GERAM";
     name = ?"GERAM";
-    description = ?"Green Energy & Resource Asset Mechanism";
+    description = ?"Global Economic Real Asset Mechanism";
     logo = null;
     supply_cap = null;
     max_query_batch_size = null;
@@ -104,6 +104,17 @@ public type Account = Account.Account;
   public type EvidenceStatus = Protocol.EvidenceStatus;
 public type Evidence = Protocol.Evidence;
 public type VerificationStatus = Protocol.VerificationStatus;
+
+public type EconomicRightStatus = Protocol.EconomicRightStatus;
+public type EconomicRight = Protocol.EconomicRight;
+public type EconomicRightResult = Protocol.EconomicRightResult;
+
+public type AssignmentStatus = Protocol.AssignmentStatus;
+public type Assignment = Protocol.Assignment;
+public type AcceptanceStatus = Protocol.AcceptanceStatus;
+public type Acceptance = Protocol.Acceptance;
+public type AssignmentResult = Protocol.AssignmentResult;
+public type AcceptanceResult = Protocol.AcceptanceResult;
 public type Verification = Protocol.Verification;
 
 public type EvidenceResult = {
@@ -2488,6 +2499,10 @@ public shared ({ caller }) func archive_wallet(
   stable var assets : [Asset] = [];
   stable var collaterals : [Collateral] = [];
   stable var valuations : [ValuationRecord] = [];
+  stable var economicRights : [EconomicRight] = [];
+
+  stable var assignments : [Assignment] = [];
+  stable var acceptances : [Acceptance] = [];
   stable var energyVerifications : [EnergyVerification] = [];
   stable var certificates : [GeramCertificate] = [];
   stable var evidences : [Evidence] = [];
@@ -2983,6 +2998,423 @@ func isOwner(caller : Principal) : Bool {
   // ==========================================================
   // GERAM-F16 ? VALUATION REGISTRY FOUNDATION
   // ==========================================================
+
+  public shared ({ caller }) func create_economic_right(
+    right : EconomicRight
+  ) : async EconomicRightResult {
+    if (not isOwner(caller)) {
+      return #err("Unauthorized");
+    };
+
+    if (right.right_id == "") {
+      return #err("Economic right creation failed: right_id is empty");
+    };
+
+    if (right.certificate_id == "") {
+      return #err("Economic right creation failed: certificate_id is empty");
+    };
+
+    if (right.project_id == "") {
+      return #err("Economic right creation failed: project_id is empty");
+    };
+
+    if (right.rights_type == "") {
+      return #err("Economic right creation failed: rights_type is empty");
+    };
+
+    if (right.entitlement == 0) {
+      return #err("Economic right creation failed: entitlement is zero");
+    };
+
+    if (right.entitlement_unit == "") {
+      return #err("Economic right creation failed: entitlement_unit is empty");
+    };
+
+    if (right.version == 0) {
+      return #err("Economic right creation failed: version is zero");
+    };
+
+    if (right.created_at <= 0 or right.updated_at <= 0) {
+      return #err("Economic right creation failed: invalid timestamps");
+    };
+
+    for (existing in economicRights.vals()) {
+      if (existing.right_id == right.right_id) {
+        return #err("Economic right already exists");
+      };
+    };
+
+    var certificateExists = false;
+
+    for (certificate in certificates.vals()) {
+      if (certificate.certificate_id == right.certificate_id) {
+        certificateExists := true;
+
+        if (certificate.project_id != right.project_id) {
+          return #err(
+            "Economic right creation failed: certificate project mismatch"
+          );
+        };
+      };
+    };
+
+    if (not certificateExists) {
+      return #err(
+        "Economic right creation failed: certificate_id not found"
+      );
+    };
+
+    switch (right.contract_id) {
+      case (?contractId) {
+        var contractExists = false;
+
+        for (contract in contracts.vals()) {
+          if (contract.contract_id == contractId) {
+            contractExists := true;
+
+            if (contract.project_id != right.project_id) {
+              return #err(
+                "Economic right creation failed: contract project mismatch"
+              );
+            };
+          };
+        };
+
+        if (not contractExists) {
+          return #err(
+            "Economic right creation failed: contract_id not found"
+          );
+        };
+      };
+      case null {};
+    };
+
+    let now = Time.now();
+
+    let storedRight : EconomicRight = {
+      right_id = right.right_id;
+      certificate_id = right.certificate_id;
+      project_id = right.project_id;
+      contract_id = right.contract_id;
+      beneficiary = right.beneficiary;
+      rights_type = right.rights_type;
+      entitlement = right.entitlement;
+      entitlement_unit = right.entitlement_unit;
+      status = right.status;
+      version = right.version;
+      created_at = now;
+      updated_at = now;
+    };
+
+    economicRights := Array.append<EconomicRight>(
+      economicRights,
+      [storedRight]
+    );
+
+    #ok(storedRight)
+  };
+
+  public query func get_economic_right(
+    right_id : Text
+  ) : async ?EconomicRight {
+    for (right in economicRights.vals()) {
+      if (right.right_id == right_id) {
+        return ?right;
+      };
+    };
+
+    null
+  };
+
+  public query func list_economic_rights() : async [EconomicRight] {
+    economicRights
+  };
+
+
+  // P02-S02-F18.03 ? ASSIGNMENT & ACCEPTANCE FOUNDATION
+  // ====================================================
+
+  public shared ({ caller }) func create_assignment(
+    assignment : Assignment
+  ) : async AssignmentResult {
+    if (not isOwner(caller)) {
+      return #err("Unauthorized");
+    };
+
+    if (assignment.assignment_id == "") {
+      return #err("Assignment creation failed: assignment_id is required");
+    };
+
+    if (assignment.right_id == "") {
+      return #err("Assignment creation failed: right_id is required");
+    };
+
+    if (assignment.from_beneficiary == assignment.to_beneficiary) {
+      return #err("Assignment creation failed: beneficiaries must differ");
+    };
+
+    if (assignment.version == 0) {
+      return #err("Assignment creation failed: version must be greater than zero");
+    };
+
+    for (item in assignments.vals()) {
+      if (item.assignment_id == assignment.assignment_id) {
+        return #err("Assignment creation failed: assignment_id already exists");
+      };
+    };
+
+    var rightFound : ?EconomicRight = null;
+
+    for (item in economicRights.vals()) {
+      if (item.right_id == assignment.right_id) {
+        rightFound := ?item;
+      };
+    };
+
+    switch (rightFound) {
+      case (null) {
+        return #err("Assignment creation failed: economic right not found");
+      };
+      case (?right) {
+        if (right.beneficiary != assignment.from_beneficiary) {
+          return #err("Assignment creation failed: from_beneficiary mismatch");
+        };
+      };
+    };
+
+    let now = Time.now();
+
+    let stored : Assignment = {
+      assignment with
+      status = #PENDING;
+      created_at = now;
+      updated_at = now;
+    };
+
+    assignments := Array.append<Assignment>(assignments, [stored]);
+
+    #ok(stored)
+  };
+
+  public query func get_assignment(
+    assignment_id : Text
+  ) : async ?Assignment {
+    for (item in assignments.vals()) {
+      if (item.assignment_id == assignment_id) {
+        return ?item;
+      };
+    };
+    null
+  };
+
+  public query func list_assignments() : async [Assignment] {
+    assignments
+  };
+
+  public shared ({ caller }) func create_acceptance(
+    acceptance : Acceptance
+  ) : async AcceptanceResult {
+    if (not isOwner(caller)) {
+      return #err("Unauthorized");
+    };
+
+    if (acceptance.acceptance_id == "") {
+      return #err("Acceptance creation failed: acceptance_id is required");
+    };
+
+    if (acceptance.assignment_id == "") {
+      return #err("Acceptance creation failed: assignment_id is required");
+    };
+
+    for (item in acceptances.vals()) {
+      if (item.acceptance_id == acceptance.acceptance_id) {
+        return #err("Acceptance creation failed: acceptance_id already exists");
+      };
+    };
+
+    var assignmentFound : ?Assignment = null;
+
+    for (item in assignments.vals()) {
+      if (item.assignment_id == acceptance.assignment_id) {
+        assignmentFound := ?item;
+      };
+    };
+
+    switch (assignmentFound) {
+      case (null) {
+        return #err("Acceptance creation failed: assignment not found");
+      };
+      case (?assignment) {
+        if (assignment.to_beneficiary != acceptance.assignee) {
+          return #err("Acceptance creation failed: assignee mismatch");
+        };
+
+        if (assignment.status != #PENDING) {
+          return #err("Acceptance creation failed: assignment is not pending");
+        };
+      };
+    };
+
+    let now = Time.now();
+
+    let stored : Acceptance = {
+      acceptance with
+      status = #ACCEPTED;
+      accepted_at = ?now;
+      created_at = now;
+    };
+
+    acceptances := Array.append<Acceptance>(acceptances, [stored]);
+
+    var nextAssignments : [Assignment] = [];
+
+    for (item in assignments.vals()) {
+      if (item.assignment_id == acceptance.assignment_id) {
+        nextAssignments := Array.append<Assignment>(
+          nextAssignments,
+          [{
+            item with
+            status = #ACCEPTED;
+            updated_at = now;
+          }]
+        );
+      } else {
+        nextAssignments := Array.append<Assignment>(nextAssignments, [item]);
+      };
+    };
+
+    assignments := nextAssignments;
+
+    #ok(stored)
+  };
+
+  public query func get_acceptance(
+    acceptance_id : Text
+  ) : async ?Acceptance {
+    for (item in acceptances.vals()) {
+      if (item.acceptance_id == acceptance_id) {
+        return ?item;
+      };
+    };
+    null
+  };
+
+  public query func list_acceptances() : async [Acceptance] {
+    acceptances
+  };
+
+  public shared ({ caller }) func complete_assignment(
+    assignment_id : Text
+  ) : async AssignmentResult {
+    if (not isOwner(caller)) {
+      return #err("Unauthorized");
+    };
+
+    if (assignment_id == "") {
+      return #err("Assignment ID is required");
+    };
+
+    var targetAssignment : ?Assignment = null;
+    for (item in assignments.vals()) {
+      if (item.assignment_id == assignment_id) {
+        targetAssignment := ?item;
+      };
+    };
+
+    switch (targetAssignment) {
+      case (null) {
+        return #err("Assignment not found");
+      };
+      case (?assignment) {
+        if (assignment.status != #ACCEPTED) {
+          return #err("Assignment completion failed: assignment is not accepted");
+        };
+
+        var acceptanceFound = false;
+        for (item in acceptances.vals()) {
+          if (
+            item.assignment_id == assignment.assignment_id and
+            item.assignee == assignment.to_beneficiary and
+            item.status == #ACCEPTED
+          ) {
+            acceptanceFound := true;
+          };
+        };
+
+        if (not acceptanceFound) {
+          return #err("Assignment completion failed: accepted acceptance not found");
+        };
+
+        var targetRight : ?EconomicRight = null;
+        for (item in economicRights.vals()) {
+          if (item.right_id == assignment.right_id) {
+            targetRight := ?item;
+          };
+        };
+
+        switch (targetRight) {
+          case (null) {
+            return #err("Assignment completion failed: economic right not found");
+          };
+          case (?right) {
+            if (right.beneficiary != assignment.from_beneficiary) {
+              return #err("Assignment completion failed: beneficiary already changed");
+            };
+
+            let now = Time.now();
+
+            let updatedRight : EconomicRight = {
+              right with
+              beneficiary = assignment.to_beneficiary;
+              version = right.version + 1;
+              updated_at = now;
+            };
+
+            let completedAssignment : Assignment = {
+              assignment with
+              status = #COMPLETED;
+              updated_at = now;
+            };
+
+            var nextRights : [EconomicRight] = [];
+            for (item in economicRights.vals()) {
+              if (item.right_id == right.right_id) {
+                nextRights := Array.append<EconomicRight>(
+                  nextRights,
+                  [updatedRight]
+                );
+              } else {
+                nextRights := Array.append<EconomicRight>(
+                  nextRights,
+                  [item]
+                );
+              };
+            };
+
+            var nextAssignments : [Assignment] = [];
+            for (item in assignments.vals()) {
+              if (item.assignment_id == assignment.assignment_id) {
+                nextAssignments := Array.append<Assignment>(
+                  nextAssignments,
+                  [completedAssignment]
+                );
+              } else {
+                nextAssignments := Array.append<Assignment>(
+                  nextAssignments,
+                  [item]
+                );
+              };
+            };
+
+            economicRights := nextRights;
+            assignments := nextAssignments;
+
+            #ok(completedAssignment)
+          };
+        };
+      };
+    };
+  };
 
   public shared ({ caller }) func create_valuation(
     valuation : ValuationRecord

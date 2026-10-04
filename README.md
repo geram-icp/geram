@@ -111,7 +111,7 @@ Instead:
 
 GERAM stands for:
 
-Green Energy & Resource Asset Mechanism
+Global Economic Real Asset Mechanism
 
 Within the ecosystem, GERAM represents a protocol and infrastructure layer for registering, verifying, valuing, representing and financially utilizing eligible real-world assets and resource-based economic value.
 
@@ -1295,3 +1295,16 @@ Finally, you can stop the local network with:
 ```bash
 icp network stop
 ```
+
+---
+
+## Current Project Documentation
+
+For the current architecture, domain model, process flow, F18.04 result and development method, see:
+
+- [GERAM Project Guide](./docs/GERAM_PROJECT_GUIDE.md)
+- [F18.04 Final Baseline](./docs/baselines/F18.04_FINAL_BASELINE.md)
+
+The project continues from F18.04 directly into:
+
+**F19 ? Benefit & Obligation Lifecycle Foundation**

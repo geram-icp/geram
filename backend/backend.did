@@ -366,12 +366,16 @@ type GERAM =
     (Result_4);
    close_account: (account_id: text, now: int) -> (Result_2);
    close_wallet: (wallet_id: text, now: int) -> (Result);
+   complete_assignment: (assignment_id: text) -> (AssignmentResult);
+   create_acceptance: (acceptance: Acceptance) -> (AcceptanceResult);
    create_account: (account_id: text, identity_id: text, kind: AccountKind,
     metadata_ref: opt text, now: int) -> (Result_2);
    create_asset: (asset: Asset) -> (AssetResult);
+   create_assignment: (assignment: Assignment) -> (AssignmentResult);
    create_certificate: (certificate: GeramCertificate) -> (CertificateResult);
    create_collateral: (collateral: Collateral) -> (CollateralResult);
    create_contract: (contract: Contract) -> (ContractResult);
+   create_economic_right: (right: EconomicRight) -> (EconomicRightResult);
    create_energy_verification: (verification: EnergyVerification) ->
     (EnergyVerificationResult);
    create_evidence: (evidence: Evidence) -> (EvidenceResult);
@@ -387,12 +391,15 @@ type GERAM =
    create_verification: (verification: Verification) -> (VerificationResult);
    create_wallet: (wallet_id: text, account_id: text, kind: WalletKind,
     metadata_ref: opt text, now: int) -> (Result);
+   get_acceptance: (acceptance_id: text) -> (opt Acceptance) query;
    get_account: (account_id: text) -> (opt Account) query;
    get_accounts_by_identity: (identity_id: text) -> (vec Account) query;
    get_asset: (asset_id: text) -> (opt Asset) query;
+   get_assignment: (assignment_id: text) -> (opt Assignment) query;
    get_certificate: (certificate_id: text) -> (opt GeramCertificate) query;
    get_collateral: (collateral_id: text) -> (opt Collateral) query;
    get_contract: (contract_id: text) -> (opt Contract) query;
+   get_economic_right: (right_id: text) -> (opt EconomicRight) query;
    get_energy_verification: (verification_id: text) ->
     (opt EnergyVerification) query;
    get_evidence: (evidence_id: text) -> (opt Evidence) query;
@@ -445,10 +452,13 @@ type GERAM =
     (IssueCertificateResult);
    link_verification: (identity_id: text, verification_id: text) ->
     (Result_3);
+   list_acceptances: () -> (vec Acceptance) query;
    list_assets: () -> (vec Asset) query;
+   list_assignments: () -> (vec Assignment) query;
    list_certificates: () -> (vec GeramCertificate) query;
    list_collaterals: () -> (vec Collateral) query;
    list_contracts: () -> (vec Contract) query;
+   list_economic_rights: () -> (vec EconomicRight) query;
    list_energy_verifications: () -> (vec EnergyVerification) query;
    list_evidence: () -> (vec Evidence) query;
    list_fund_assets: (fund_id: opt text) -> (vec FundAsset) query;
@@ -686,6 +696,34 @@ type EnergyVerification =
    verification_timestamp: int;
    verifier_id: text;
  };
+type EconomicRightStatus = 
+ variant {
+   ACTIVE;
+   PENDING;
+   RETIRED;
+   SETTLED;
+   SUSPENDED;
+ };
+type EconomicRightResult = 
+ variant {
+   err: text;
+   ok: EconomicRight;
+ };
+type EconomicRight = 
+ record {
+   beneficiary: principal;
+   certificate_id: text;
+   contract_id: opt text;
+   created_at: int;
+   entitlement: nat;
+   entitlement_unit: text;
+   project_id: text;
+   right_id: text;
+   rights_type: text;
+   status: EconomicRightStatus;
+   updated_at: int;
+   version: nat;
+ };
 type ContractStatus = 
  variant {
    ACTIVE;
@@ -756,6 +794,30 @@ type CertificateResult =
  };
 type BalanceOfResponse = vec nat;
 type BalanceOfRequest = vec Account__1;
+type AssignmentStatus = 
+ variant {
+   ACCEPTED;
+   CANCELLED;
+   COMPLETED;
+   PENDING;
+   REJECTED;
+ };
+type AssignmentResult = 
+ variant {
+   err: text;
+   ok: Assignment;
+ };
+type Assignment = 
+ record {
+   assignment_id: text;
+   created_at: int;
+   from_beneficiary: principal;
+   right_id: text;
+   status: AssignmentStatus;
+   to_beneficiary: principal;
+   updated_at: int;
+   version: nat;
+ };
 type AssetStatus = 
  variant {
    Active;
@@ -819,6 +881,26 @@ type Account =
    metadata_ref: opt text;
    status: AccountStatus;
    updated_at: int;
+ };
+type AcceptanceStatus = 
+ variant {
+   ACCEPTED;
+   PENDING;
+   REJECTED;
+ };
+type AcceptanceResult = 
+ variant {
+   err: text;
+   ok: Acceptance;
+ };
+type Acceptance = 
+ record {
+   acceptance_id: text;
+   accepted_at: opt int;
+   assignee: principal;
+   assignment_id: text;
+   created_at: int;
+   status: AcceptanceStatus;
  };
 type AIStrategyStatus = 
  variant {

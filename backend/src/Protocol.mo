@@ -359,6 +359,35 @@ module {
     #EXPIRED;
   };
 
+  public type EconomicRightStatus = {
+    #PENDING;
+    #ACTIVE;
+    #SUSPENDED;
+    #SETTLED;
+    #RETIRED;
+  };
+
+  public type EconomicRight = {
+    right_id : Text;
+    certificate_id : Text;
+    project_id : Text;
+    contract_id : ?Text;
+    beneficiary : Principal;
+    rights_type : Text;
+    entitlement : Nat;
+    entitlement_unit : Text;
+    status : EconomicRightStatus;
+    version : Nat;
+    created_at : Int;
+    updated_at : Int;
+  };
+
+  public type EconomicRightResult = {
+    #ok : EconomicRight;
+    #err : Text;
+  };
+
+
   public type Verification = {
     verification_id : Text;
     subject_type : Text;
@@ -397,5 +426,53 @@ module {
     created_at : Int;
   };
 
+
+
+  // P02-S02-F18.03 ? ASSIGNMENT & ACCEPTANCE FOUNDATION
+  // ====================================================
+
+  public type AssignmentStatus = {
+    #PENDING;
+    #ACCEPTED;
+    #REJECTED;
+    #CANCELLED;
+    #COMPLETED;
+  };
+
+  public type Assignment = {
+    assignment_id : Text;
+    right_id : Text;
+    from_beneficiary : Principal;
+    to_beneficiary : Principal;
+    status : AssignmentStatus;
+    version : Nat;
+    created_at : Int;
+    updated_at : Int;
+  };
+
+  public type AcceptanceStatus = {
+    #PENDING;
+    #ACCEPTED;
+    #REJECTED;
+  };
+
+  public type Acceptance = {
+    acceptance_id : Text;
+    assignment_id : Text;
+    assignee : Principal;
+    status : AcceptanceStatus;
+    accepted_at : ?Int;
+    created_at : Int;
+  };
+
+  public type AssignmentResult = {
+    #ok : Assignment;
+    #err : Text;
+  };
+
+  public type AcceptanceResult = {
+    #ok : Acceptance;
+    #err : Text;
+  };
 
 }
