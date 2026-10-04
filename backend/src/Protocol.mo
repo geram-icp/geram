@@ -99,6 +99,30 @@ module {
     active : Bool;
   };
 
+  public type ReferenceRateStatus = {
+    #ACTIVE;
+    #REVOKED;
+  };
+
+  public type ReferenceRate = {
+    rate_id : Text;
+    base_currency : Text;
+    quote_currency : Text;
+    rate : Nat;
+    rate_scale : Nat;
+    timestamp : Int;
+    source : Text;
+    source_reference : ?Text;
+    market_type : ?Text;
+    rate_status : ReferenceRateStatus;
+    created_at : Int;
+  };
+
+  public type ReferenceRateResult = {
+    #ok : ReferenceRate;
+    #err : Text;
+  };
+
   public type MarketSnapshot = {
     certificate_id : Text;
     valuation_timestamp : Int;

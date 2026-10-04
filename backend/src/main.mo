@@ -130,6 +130,10 @@ public type VerificationResult = {
   public type Contract = Protocol.Contract;
   public type OrganizationRole = Protocol.OrganizationRole;
   public type OrganizationNode = Protocol.OrganizationNode;
+  public type ReferenceRateStatus = Protocol.ReferenceRateStatus;
+  public type ReferenceRate = Protocol.ReferenceRate;
+  public type ReferenceRateResult = Protocol.ReferenceRateResult;
+
   public type MarketSnapshot = Protocol.MarketSnapshot;
 
   // ============================================================
@@ -2536,6 +2540,7 @@ public shared ({ caller }) func archive_wallet(
   };
 
   stable var marketSnapshots : [MarketSnapshot] = [];
+  stable var referenceRates : [ReferenceRate] = [];
 
   // ============================================================
   // GERAM-HAMIFUND — Stable Registry
@@ -4182,12 +4187,120 @@ for (project in projects.vals()) {
   // P04-07 — Create Market Snapshot
   // ============================================================
 
+  // ==========================================================
+  // F19-T6 ? Reference Rate Registry
+  // ==========================================================
+
+  public shared ({ caller }) func create_reference_rate(
+    reference_rate : ReferenceRate
+  ) : async ReferenceRateResult {
+
+    if (not isOwner(caller)) {
+      return #err("Unauthorized: only GERAM owner can create a reference rate");
+    };
+
+    if (reference_rate.rate_id == "") {
+      return #err("Reference rate creation failed: rate_id is required");
+    };
+
+    if (reference_rate.base_currency == "") {
+      return #err("Reference rate creation failed: base_currency is required");
+    };
+
+    if (reference_rate.quote_currency == "") {
+      return #err("Reference rate creation failed: quote_currency is required");
+    };
+
+    if (reference_rate.base_currency == reference_rate.quote_currency) {
+      return #err("Reference rate creation failed: base_currency and quote_currency must differ");
+    };
+
+    if (reference_rate.rate == 0) {
+      return #err("Reference rate creation failed: rate must be greater than zero");
+    };
+
+    if (reference_rate.rate_scale == 0) {
+      return #err("Reference rate creation failed: rate_scale must be greater than zero");
+    };
+
+    if (reference_rate.timestamp <= 0) {
+      return #err("Reference rate creation failed: timestamp must be greater than zero");
+    };
+
+    if (reference_rate.source != "GOOGLE_FINANCE") {
+      return #err("Reference rate creation failed: source must be GOOGLE_FINANCE");
+    };
+
+    for (existing in referenceRates.vals()) {
+      if (existing.rate_id == reference_rate.rate_id) {
+        return #err("Reference rate creation failed: duplicate rate_id");
+      };
+    };
+
+    let storedRate : ReferenceRate = {
+      reference_rate with
+      rate_status = #ACTIVE;
+      created_at = Time.now();
+    };
+
+    referenceRates := Array.append<ReferenceRate>(
+      referenceRates,
+      [storedRate]
+    );
+
+    #ok(storedRate);
+  };
+
+  public query func get_reference_rate(
+    rate_id : Text
+  ) : async ?ReferenceRate {
+
+    Array.find<ReferenceRate>(
+      referenceRates,
+      func(rate : ReferenceRate) : Bool {
+        rate.rate_id == rate_id
+      }
+    );
+  };
+
+  public query func list_reference_rates() : async [ReferenceRate] {
+    referenceRates
+  };
+
   public shared ({ caller }) func create_market_snapshot(
     snapshot : MarketSnapshot
   ) : async MarketSnapshotResult {
 
     if (not isOwner(caller)) {
       return #err("Unauthorized: only GERAM owner can create a market snapshot");
+    };
+
+    if (snapshot.certificate_id == "") {
+      return #err("Market snapshot creation failed: certificate_id is required");
+    };
+
+    if (snapshot.base_value == 0) {
+      return #err("Market snapshot creation failed: base_value must be greater than zero");
+    };
+
+    if (snapshot.indicative_value == 0) {
+      return #err("Market snapshot creation failed: indicative_value must be greater than zero");
+    };
+
+    if (snapshot.valuation_timestamp <= 0) {
+      return #err("Market snapshot creation failed: valuation_timestamp must be greater than zero");
+    };
+
+    var certificateExists = false;
+
+    for (certificate in certificates.vals()) {
+      if (certificate.certificate_id == snapshot.certificate_id) {
+        certificateExists := true;
+      };
+    };
+
+    if (not certificateExists) {
+      return #err("Market snapshot creation failed: certificate not found");
     };
 
     marketSnapshots := Array.append<MarketSnapshot>(
