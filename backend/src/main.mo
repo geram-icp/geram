@@ -2820,6 +2820,15 @@ func isOwner(caller : Principal) : Bool {
         for (evidence in evidences.vals()) {
           if (evidence.evidence_id == evidenceId) {
             evidenceExists := true;
+
+            if (
+              evidence.subject_type != verification.subject_type
+              or evidence.subject_id != verification.subject_id
+            ) {
+              return #err(
+                "Verification creation failed: evidence subject mismatch"
+              );
+            };
           };
         };
 

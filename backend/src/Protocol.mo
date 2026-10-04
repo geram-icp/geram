@@ -325,6 +325,53 @@ module {
   };
 
   // ==========================================================
+  // P02-S02-F14 ? TRUST & EVIDENCE FOUNDATION
+
+  public type EvidenceStatus = {
+    #DRAFT;
+    #ACTIVE;
+    #EXPIRED;
+    #REVOKED;
+    #ARCHIVED;
+  };
+
+  public type Evidence = {
+    evidence_id : Text;
+    subject_type : Text;
+    subject_id : Text;
+    evidence_type : Text;
+    title : Text;
+    description : Text;
+    source_reference : ?Text;
+    document_hash : ?Text;
+    issuer_id : Text;
+    issued_at : Int;
+    valid_until : ?Int;
+    status : EvidenceStatus;
+    created_at : Int;
+  };
+
+  public type VerificationStatus = {
+    #PENDING;
+    #VERIFIED;
+    #REJECTED;
+    #REVOKED;
+    #EXPIRED;
+  };
+
+  public type Verification = {
+    verification_id : Text;
+    subject_type : Text;
+    subject_id : Text;
+    evidence_id : ?Text;
+    verification_method : Text;
+    verifier_id : Text;
+    verification_reference : ?Text;
+    verified_at : Int;
+    status : VerificationStatus;
+    created_at : Int;
+  };
+
   // P02-S02-F13 ? CONTRACT & LEGAL REFERENCE FOUNDATION
   // ==========================================================
 
