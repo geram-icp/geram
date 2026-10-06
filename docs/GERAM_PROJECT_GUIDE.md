@@ -684,9 +684,13 @@ The current verified development sequence includes:
 - F18.03 ? Assignment & Acceptance Foundation
 - F18.04 ? Economic Right Transfer Control
 
-Next:
+Current:
 
-**F19 ? Benefit & Obligation Lifecycle Foundation**
+**F19 ? Market, Reference Rate and Service-Boundary Foundation**
+
+F19 establishes market/reference snapshots, immutable external reference rates,
+the boundary between GERAM Core and specialized financial services, and holder
+independence.
 
 F19 starts from the frozen F18.04 baseline.
 
@@ -709,28 +713,86 @@ F19 starts from the frozen F18.04 baseline.
 13. External institutions remain authoritative for their legal records.
 14. Critical state transitions must be auditable.
 15. Every completed stage must have a reproducible baseline.
+16. Market price is discovered by supply and demand; GERAM does not set it.
+17. GERAM does not calculate, promise or distribute investment returns.
+18. Maturity liquidity is not a guaranteed secondary-market price.
+19. GERAM does not control how a holder uses GERAM after authorized delivery.
+20. Holder utilization is subject to the GERAM state, applicable law and contractual restrictions.
+21. NFID.ONE provides the wallet and identity/control layer; GERAM remains the canonical economic record.
+22. HamiFund, FlowChain, Marketplaces and other services are optional specialized services.
+23. Use of an external service does not transfer that service's financial obligations to GERAM.
+24. Pledge, lending, staking, investment and marketplace activity are separate service-layer activities.
+25. GERAM must not become a financial intermediary merely because GERAM is accepted by a financial service.
 
 ---
 
-## 28. Executive Model
+## 28. Holder Independence & Service Neutrality
+
+After authorized delivery of GERAM to the holder's NFID.ONE wallet, GERAM remains
+neutral regarding the holder's subsequent utilization, subject to applicable law,
+contractual terms and the current GERAM state.
+
+The holder may, where permitted:
+
+- Hold GERAM
+- Transfer GERAM to another wallet
+- List GERAM on an eligible marketplace
+- Sell GERAM
+- Pledge GERAM
+- Use GERAM as eligible collateral
+- Obtain financing against GERAM
+- Stake GERAM where supported
+- Invest through an eligible financial product
+- Use other authorized services
+
+GERAM does not require the holder to use HamiFund, FlowChain, a Marketplace or any
+other specialized service.
+
+The relevant service assumes responsibility for its own financial, operational
+and regulatory obligations. GERAM remains responsible for its own canonical record,
+lifecycle, contractual references, restrictions and defined maturity mechanisms.
+
+Importantly:
+
+> **Maturity Liquidity != Guaranteed Market Price**
+
+Market price is discovered through supply, demand and market conditions. Any maturity
+liquidity or protection mechanism must arise from the applicable contract, eligible
+backing, guarantee structure and legal framework.
+
+---
+
+## 29. Executive Model
 
 In simple terms:
 
 GERAM asks:
 
-> What is the economic asset or value, what proves it, what is it worth, what rights exist, and what happened to it?
+> What is the economic asset or value, what proves it, what is it worth, what rights exist, what restrictions apply, and what happened to it?
 
 NFID asks:
 
 > Who is the participant, what account and wallet are involved, and what are they authorized to do?
 
+The Holder decides:
+
+> After authorized delivery to NFID.ONE, how do I lawfully use my GERAM?
+
+Subject to applicable law, contractual terms and the current GERAM state, the holder
+may hold, transfer, sell, list, pledge, obtain financing, stake, invest, or use other
+eligible services.
+
 HamiFund asks:
 
-> How can eligible assets and capital be used in controlled financial activity?
+> How can eligible GERAM and capital be used in controlled financial activity?
 
 FlowChain asks:
 
 > How are exchange and settlement routed?
+
+Marketplace asks:
+
+> At what price can GERAM be bought or sold through supply and demand?
 
 ICPCooperative asks:
 
@@ -743,5 +805,7 @@ zkEVM asks:
 ISO 20022 asks:
 
 > How can financial messages be standardized between institutions?
+
+GERAM does not decide which of these services a holder must use.
 
 Together they form a connected but domain-separated financial and real-asset ecosystem.
