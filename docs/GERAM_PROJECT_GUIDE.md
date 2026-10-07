@@ -809,3 +809,48 @@ ISO 20022 asks:
 GERAM does not decide which of these services a holder must use.
 
 Together they form a connected but domain-separated financial and real-asset ecosystem.
+
+
+**T14-03 ? Atomic Authorized Direct GERAM Issuance & Direct NFT Delivery**
+
+T14-03 is **PASS / CLOSED / FROZEN**.
+
+T14-03 establishes the canonical GERAM issuance boundary:
+
+**Validate ? Reserve GERAM ID Candidate ? Validate Legal Basis ? Mint RWA-NFT
+Directly to Initial Holder ? Create GERAM ? Create Certificate ? Commit
+Allocators ? Return Success**
+
+Finalized principles:
+
+- every GERAM requires a valid legal / contractual / authorized legal basis;
+- missing or empty `external_reference` is rejected before Mint;
+- GERAM ID candidates are obtained from `currentGeramId()`;
+- duplicate GERAM candidates are rejected before Mint;
+- RWA-NFT is minted directly to `request.initial_holder`;
+- ICRC-7 remains the source of truth for NFT ownership;
+- GERAM remains the canonical economic record;
+- Certificate does not replace GERAM;
+- no business validation capable of returning an issuance error remains after
+  successful irreversible Mint and before registry completion;
+- `nextGeramId` and `nextGeramTokenId` are committed only after successful
+  Mint and registry creation;
+- new GERAM records begin in `ACTIVE`;
+- T14-03 does not introduce financial-service behavior into GERAM Core.
+
+Verified positive issuance:
+
+- Certificate: `T14-03-POSITIVE-NEW-001`
+- Token: `1_000_009`
+- Transaction: `8`
+- Project: `F18-03-PROJECT-001`
+- Initial holder: `2vxsx-fae`
+- Legal basis: `LEGAL-BASIS-T14-03-POSITIVE-NEW-001`
+- NFT supply after issuance: `9`
+
+Implementation commit:
+
+`205f449 feat(p2): finalize atomic GERAM issuance and direct delivery`
+
+T14-03 is complete and frozen.
+
