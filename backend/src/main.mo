@@ -105,6 +105,12 @@ public type Account = Account.Account;
 public type Evidence = Protocol.Evidence;
 public type VerificationStatus = Protocol.VerificationStatus;
 
+public type GeramStatus = Protocol.GeramStatus;
+public type Geram = Protocol.Geram;
+public type LifecycleEvent = Protocol.LifecycleEvent;
+public type TransferRestrictionStatus = Protocol.TransferRestrictionStatus;
+public type TransferRestriction = Protocol.TransferRestriction;
+
 public type EconomicRightStatus = Protocol.EconomicRightStatus;
 public type EconomicRight = Protocol.EconomicRight;
 public type EconomicRightResult = Protocol.EconomicRightResult;
@@ -2503,6 +2509,10 @@ public shared ({ caller }) func archive_wallet(
   stable var assets : [Asset] = [];
   stable var collaterals : [Collateral] = [];
   stable var valuations : [ValuationRecord] = [];
+  stable var gerams : [Geram] = [];
+  stable var lifecycleEvents : [LifecycleEvent] = [];
+  stable var transferRestrictions : [TransferRestriction] = [];
+
   stable var economicRights : [EconomicRight] = [];
 
   stable var assignments : [Assignment] = [];
@@ -2518,7 +2528,15 @@ public shared ({ caller }) func archive_wallet(
 
   // GERAM token namespace starts above the experimental/test token range.
   // Certificate ID and ICRC-7 Token ID remain separate identifiers.
+  stable var nextGeramId : Nat = 1;
+
   stable var nextGeramTokenId : Nat = 1_000_001;
+
+  // Allocates an immutable GERAM_ID independently from
+  // Certificate_ID and ICRC-7 RWA-NFT Token ID.
+  private func currentGeramId() : Text {
+    "GERAM-" # debug_show(nextGeramId)
+  };
 
   // Finds the first unused Token ID in the GERAM namespace.
   // ICRC-7 remains the source of truth for actual NFT existence.
@@ -4042,8 +4060,47 @@ for (project in projects.vals()) {
     ]);
 
     // ------------------------------------------------------------
+    // ------------------------------------------------------------
+    // T14-03 ? Validate Legal / Contractual Basis before Mint
+    // ------------------------------------------------------------
+
+    let legalBasisReference : Text = switch (request.external_reference) {
+      case (?reference) {
+        if (reference == "") {
+          return #err(
+            "Certificate issuance failed: legal_basis_reference is empty"
+          );
+        };
+        reference
+      };
+      case null {
+        return #err(
+          "Certificate issuance failed: legal_basis_reference is required"
+        );
+      };
+    };
+
     // 9. Mint through ICRC-7
     // ------------------------------------------------------------
+
+    // T14-03 ? Reserve GERAM ID candidate before Mint.
+    // The allocator is advanced only after successful registry commit.
+
+    let geramId : Text = currentGeramId();
+
+    switch (
+      Array.find<Geram>(
+        gerams,
+        func(item : Geram) : Bool {
+          item.geram_id == geramId
+        }
+      )
+    ) {
+      case (?_) {
+        return #err("GERAM issuance failed: duplicate geram_id");
+      };
+      case null {};
+    };
 
     let targetAccount : ICRC7.Account = {
       owner = request.initial_holder;
@@ -4141,15 +4198,36 @@ for (project in projects.vals()) {
       qr_reference = request.qr_reference;
     };
 
+    // --------------------------------------------------------
+    // T14-02B ? Create Canonical GERAM record
+    // --------------------------------------------------------
+
+    let geram : Geram = {
+      geram_id = geramId;
+      issuance_id = request.certificate_id;
+      project_id = request.project_id;
+      asset_id = request.asset_id;
+      legal_basis_reference = legalBasisReference;
+      current_status = #ACTIVE;
+      created_at = issueTimestamp;
+      updated_at = issueTimestamp;
+    };
+
+    gerams := Array.append<Geram>(
+      gerams,
+      [geram]
+    );
+
     certificates := Array.append<GeramCertificate>(
       certificates,
       [certificate]
     );
 
     // ------------------------------------------------------------
-    // 12. Advance allocator only after successful Mint + Registry
+    // Final allocator commit after successful Mint + Registry
     // ------------------------------------------------------------
 
+    nextGeramId += 1;
     nextGeramTokenId := tokenId + 1;
 
     // ------------------------------------------------------------
@@ -5097,6 +5175,7 @@ for (project in projects.vals()) {
       };
     };
   };
+
 
 
 };
