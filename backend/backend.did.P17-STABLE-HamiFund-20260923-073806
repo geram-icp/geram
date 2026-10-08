@@ -1,0 +1,105 @@
+type Value = 
+ variant {
+   Array: vec Value;
+   Blob: blob;
+   Int: int;
+   Map: Map;
+   Nat: nat;
+   Text: text;
+ };
+type TransferResult = 
+ variant {
+   Err: TransferError;
+   Ok: nat;
+ };
+type TransferError = 
+ variant {
+   CreatedInFuture: record {ledger_time: nat64;};
+   Duplicate: record {duplicate_of: nat;};
+   GenericBatchError: record {
+                        error_code: nat;
+                        message: text;
+                      };
+   GenericError: record {
+                   error_code: nat;
+                   message: text;
+                 };
+   InvalidRecipient;
+   NonExistingTokenId;
+   TooOld;
+   Unauthorized;
+ };
+type TransferArg = 
+ record {
+   created_at_time: opt nat64;
+   from_subaccount: opt blob;
+   memo: opt blob;
+   to: Account;
+   token_id: nat;
+ };
+type TokenMetadataResponse = vec TokenMetadataItem;
+type TokenMetadataRequest = vec nat;
+type TokenMetadataItem = opt Metadata;
+type SupportedStandardsResponse = 
+ vec record {
+       name: text;
+       url: text;
+     };
+type OwnerOfResponse = vec opt Account;
+type OwnerOfRequest = vec nat;
+type Metadata = 
+ vec record {
+       text;
+       Value;
+     };
+type Map = 
+ vec record {
+       text;
+       Value;
+     };
+type GERAM = 
+ service {
+   get_icrc85_stats: () ->
+    (record {
+       activeActions: nat;
+       lastActionReported: opt nat;
+       nextCycleActionId: opt nat;
+     }) query;
+   icrc7_atomic_batch_transfers: () -> (opt bool) query;
+   icrc7_balance_of: (args: BalanceOfRequest) -> (BalanceOfResponse) query;
+   icrc7_collection_metadata: () -> (CollectionMetadataResponse) query;
+   icrc7_default_take_value: () -> (opt nat) query;
+   icrc7_description: () -> (opt text) query;
+   icrc7_logo: () -> (opt text) query;
+   icrc7_max_memo_size: () -> (opt nat) query;
+   icrc7_max_query_batch_size: () -> (opt nat) query;
+   icrc7_max_take_value: () -> (opt nat) query;
+   icrc7_max_update_batch_size: () -> (opt nat) query;
+   icrc7_name: () -> (text) query;
+   icrc7_owner_of: (args: OwnerOfRequest) -> (OwnerOfResponse) query;
+   icrc7_permitted_drift: () -> (opt nat) query;
+   icrc7_supply_cap: () -> (opt nat) query;
+   icrc7_supported_standards: () -> (SupportedStandardsResponse) query;
+   icrc7_symbol: () -> (text) query;
+   icrc7_token_metadata: (args: TokenMetadataRequest) ->
+    (TokenMetadataResponse) query;
+   icrc7_tokens: (prev: opt nat, take: opt nat) -> (vec nat) query;
+   icrc7_tokens_of: (account: Account, prev: opt nat, take: opt nat) ->
+    (vec nat) query;
+   icrc7_total_supply: () -> (nat) query;
+   icrc7_transfer: (args: vec TransferArg) -> (vec opt TransferResult);
+   icrc7_tx_window: () -> (opt nat) query;
+ };
+type CollectionMetadataResponse = 
+ vec record {
+       text;
+       Value;
+     };
+type BalanceOfResponse = vec nat;
+type BalanceOfRequest = vec Account;
+type Account = 
+ record {
+   owner: principal;
+   subaccount: opt blob;
+ };
+service : () -> GERAM

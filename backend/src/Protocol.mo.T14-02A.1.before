@@ -383,50 +383,6 @@ module {
     #EXPIRED;
   };
 
-  public type GeramStatus = {
-    #ACTIVE;
-    #MATURED;
-    #SETTLED;
-    #RETIRED;
-  };
-
-  public type Geram = {
-    geram_id : Text;
-    issuance_id : Text;
-    project_id : Text;
-    asset_id : ?Text;
-    legal_basis_reference : Text;
-    current_status : GeramStatus;
-    created_at : Int;
-    updated_at : Int;
-  };
-
-  public type LifecycleEvent = {
-    lifecycle_event_id : Text;
-    geram_id : Text;
-    event_type : Text;
-    from_holder : ?Principal;
-    to_holder : ?Principal;
-    timestamp : Int;
-    event_reference : ?Text;
-  };
-
-  public type TransferRestrictionStatus = {
-    #ACTIVE;
-    #RELEASED;
-    #EXPIRED;
-  };
-
-  public type TransferRestriction = {
-    restriction_id : Text;
-    geram_id : Text;
-    restriction_type : Text;
-    status : TransferRestrictionStatus;
-    effective_timestamp : Int;
-    expiry_timestamp : ?Int;
-    reference : Text;
-  };
-
   public type EconomicRightStatus = {
     #PENDING;
     #ACTIVE;

@@ -1,0 +1,113 @@
+import ICRC7 ".";
+import Service "./service";
+import ClassPlusLib "mo:class-plus";
+
+mixin(
+  config: ICRC7.MixinFunctionArgs
+) {
+
+    transient let icrc7 = ICRC7.Init<system>({
+      manager = config.org_icdevs_class_plus_manager;
+      initialState = switch(config.initialState){
+         case(?s) s;
+         case(null) ICRC7.initialState();
+      };
+      args = config.args;
+      pullEnvironment = config.pullEnvironment;
+      onInitialize = config.onInitialize;
+      onStorageChange = switch(config.onStorageChange){
+         case(?f) f;
+         case(null) func(s: ICRC7.State){};
+      };
+    });
+
+    public shared query ({caller}) func icrc7_name() : async Text {
+        icrc7().name();
+    };
+
+    public shared query ({caller}) func icrc7_symbol() : async Text {
+        icrc7().symbol();
+    };
+
+    public shared query ({caller}) func icrc7_description() : async ?Text {
+        icrc7().description();
+    };
+    
+    public shared query ({caller}) func icrc7_logo() : async ?Text {
+        icrc7().logo();
+    };
+
+    public shared query ({caller}) func icrc7_total_supply() : async Nat {
+        icrc7().total_supply();
+    };
+    
+    public shared query ({caller}) func icrc7_supply_cap() : async ?Nat {
+        icrc7().supply_cap();
+    };
+
+    public shared query ({caller}) func icrc7_max_query_batch_size() : async ?Nat {
+        icrc7().max_query_batch_size();
+    };
+    
+    public shared query ({caller}) func icrc7_max_update_batch_size() : async ?Nat {
+        icrc7().max_update_batch_size();
+    };
+
+    public shared query ({caller}) func icrc7_default_take_value() : async ?Nat {
+        icrc7().default_take_value();
+    };
+
+    public shared query ({caller}) func icrc7_max_take_value() : async ?Nat {
+        icrc7().max_take_value();
+    };
+
+    public shared query ({caller}) func icrc7_max_memo_size() : async ?Nat {
+        icrc7().max_memo_size();
+    };
+    
+    public shared query ({caller}) func icrc7_atomic_batch_transfers() : async ?Bool {
+        icrc7().atomic_batch_transfers();
+    };
+    
+    public shared query ({caller}) func icrc7_tx_window() : async ?Nat {
+        icrc7().tx_window();
+    };
+    
+    public shared query ({caller}) func icrc7_permitted_drift() : async ?Nat {
+        icrc7().permitted_drift();
+    };
+
+    public shared query ({caller}) func icrc7_collection_metadata() : async Service.CollectionMetadataResponse {
+        icrc7().collection_metadata();
+    };
+
+    public shared query ({caller}) func icrc7_token_metadata(args: Service.TokenMetadataRequest) : async Service.TokenMetadataResponse {
+        icrc7().token_metadata(args);
+    };
+
+    public shared query ({caller}) func icrc7_owner_of(args: Service.OwnerOfRequest) : async Service.OwnerOfResponse {
+        icrc7().owner_of(args);
+    };
+
+    public shared query ({caller}) func icrc7_balance_of(args: Service.BalanceOfRequest) : async Service.BalanceOfResponse {
+        icrc7().balance_of(args);
+    };
+
+    public shared query ({caller}) func icrc7_tokens(prev: ?Nat, take: ?Nat) : async [Nat] {
+        icrc7().tokens_of_account(null, prev, take); // wait, is this `tokens` or `tokens_of`? Let me check lib.mo
+    };
+    
+    public shared query ({caller}) func icrc7_tokens_of(account: Service.Account, prev: ?Nat, take: ?Nat) : async [Nat] {
+        icrc7().tokens_of(account, prev, take);
+    };
+
+    public shared ({caller}) func icrc7_transfer(args: [Service.TransferArg]) : async [?Service.TransferResult] {
+        icrc7().transfer_tokens(caller, args);
+    };
+
+    // ICRC-10 standards
+    public shared query ({caller}) func icrc10_supported_standards() : async Service.SupportedStandardsResponse {
+        icrc7().supported_standards(); // wait, what method name is it in lib? Let me check.
+    };
+
+}

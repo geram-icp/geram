@@ -1,0 +1,838 @@
+type WalletStatus = 
+ variant {
+   Active;
+   Archived;
+   Closed;
+   Pending;
+   Suspended;
+ };
+type WalletKind = 
+ variant {
+   Custodial;
+   Organization;
+   Other;
+   Personal;
+   Settlement;
+ };
+type Wallet = 
+ record {
+   account_id: text;
+   created_at: int;
+   kind: WalletKind;
+   metadata_ref: opt text;
+   status: WalletStatus;
+   updated_at: int;
+   wallet_id: text;
+ };
+type VerificationStatus = 
+ variant {
+   EXPIRED;
+   PENDING;
+   REJECTED;
+   REVOKED;
+   VERIFIED;
+ };
+type VerificationResult = 
+ variant {
+   err: text;
+   ok: Verification;
+ };
+type VerificationRef = 
+ record {
+   identity_id: text;
+   verification_id: text;
+ };
+type Verification = 
+ record {
+   created_at: int;
+   evidence_id: opt text;
+   status: VerificationStatus;
+   subject_id: text;
+   subject_type: text;
+   verification_id: text;
+   verification_method: text;
+   verification_reference: opt text;
+   verified_at: int;
+   verifier_id: text;
+ };
+type Value = 
+ variant {
+   Array: vec Value;
+   Blob: blob;
+   Int: int;
+   Map: Map;
+   Nat: nat;
+   Text: text;
+ };
+type ValuationStatus = 
+ variant {
+   ACTIVE;
+   PENDING;
+   REVOKED;
+   SUPERSEDED;
+ };
+type ValuationResult = 
+ variant {
+   err: text;
+   ok: ValuationRecord;
+ };
+type ValuationRecord = 
+ record {
+   base_value: nat;
+   created_at: int;
+   document_hash: opt text;
+   expert_reference: opt text;
+   methodology: opt text;
+   project_id: text;
+   status: ValuationStatus;
+   subject_id: text;
+   subject_type: text;
+   valuation_date: int;
+   valuation_id: text;
+   valuation_unit: text;
+   version: nat;
+ };
+type Valuation = 
+ record {
+   base_value: nat;
+   expert_reference: opt text;
+   methodology: opt text;
+   valuation_date: int;
+   valuation_unit: text;
+ };
+type ValidationResult = 
+ variant {
+   err: text;
+   ok: text;
+ };
+type TransferResult = 
+ variant {
+   Err: TransferError;
+   Ok: nat;
+ };
+type TransferError = 
+ variant {
+   CreatedInFuture: record {ledger_time: nat64;};
+   Duplicate: record {duplicate_of: nat;};
+   GenericBatchError: record {
+                        error_code: nat;
+                        message: text;
+                      };
+   GenericError: record {
+                   error_code: nat;
+                   message: text;
+                 };
+   InvalidRecipient;
+   NonExistingTokenId;
+   TooOld;
+   Unauthorized;
+ };
+type TransferArg = 
+ record {
+   created_at_time: opt nat64;
+   from_subaccount: opt blob;
+   memo: opt blob;
+   to: Account__1;
+   token_id: nat;
+ };
+type TokenMetadataResponse = vec TokenMetadataItem;
+type TokenMetadataRequest = vec nat;
+type TokenMetadataItem = opt Metadata;
+type SupportedStandardsResponse = 
+ vec record {
+       name: text;
+       url: text;
+     };
+type RiskLevel = 
+ variant {
+   High;
+   Low;
+   Medium;
+ };
+type Result_4 = 
+ variant {
+   err: Error;
+   ok: PrincipalBinding;
+ };
+type Result_3 = 
+ variant {
+   err: Error;
+   ok: VerificationRef;
+ };
+type Result_2 = 
+ variant {
+   err: Error;
+   ok: Account;
+ };
+type Result_1 = 
+ variant {
+   err: Error;
+   ok: Identity;
+ };
+type Result = 
+ variant {
+   err: Error;
+   ok: Wallet;
+ };
+type ProjectType = 
+ variant {
+   Energy;
+   Housing;
+   Infrastructure;
+   Logistics;
+   Other;
+   Production;
+ };
+type ProjectStatus = 
+ variant {
+   Active;
+   Approved;
+   Completed;
+   Draft;
+   Matured;
+   Suspended;
+ };
+type ProjectResult = 
+ variant {
+   err: text;
+   ok: Project;
+ };
+type Project = 
+ record {
+   asset: AssetReference;
+   description: text;
+   financial_terms: FinancialTerms;
+   issuer_id: text;
+   project_id: text;
+   project_type: ProjectType;
+   risk_level: RiskLevel;
+   status: ProjectStatus;
+   title: text;
+   valuation: Valuation;
+ };
+type PrincipalBinding = 
+ record {
+   active: bool;
+   bound_at: int;
+   identity_id: text;
+   principal_ref: text;
+ };
+type OwnerOfResponse = vec opt Account__1;
+type OwnerOfRequest = vec nat;
+type Metadata = 
+ vec record {
+       text;
+       Value;
+     };
+type MarketSnapshotResult = 
+ variant {
+   err: text;
+   ok: MarketSnapshot;
+ };
+type MarketSnapshot = 
+ record {
+   annual_return_bps: opt nat;
+   base_value: nat;
+   certificate_id: text;
+   demand_level: opt nat;
+   indicative_value: nat;
+   maturity_timestamp: int;
+   risk_level: RiskLevel;
+   supply_level: opt nat;
+   valuation_reference: opt text;
+   valuation_timestamp: int;
+ };
+type Map = 
+ vec record {
+       text;
+       Value;
+     };
+type IssueCertificateResult = 
+ variant {
+   err: text;
+   ok:
+    record {
+      certificate: GeramCertificate;
+      token_id: nat;
+      transaction_id: nat;
+    };
+ };
+type IssueCertificateRequest = 
+ record {
+   annual_return_bps: opt nat;
+   asset_id: opt text;
+   asset_type: opt text;
+   base_value: nat;
+   certificate_id: text;
+   currency: text;
+   description: opt text;
+   external_reference: opt text;
+   face_value: nat;
+   icp_valuation_timestamp: int;
+   icp_value: nat;
+   initial_holder: principal;
+   issuer_id: text;
+   maturity_timestamp: int;
+   metadata_uri: opt text;
+   physical_certificate_available: bool;
+   physical_certificate_hash: opt text;
+   project_id: text;
+   qr_reference: opt text;
+   risk_level: RiskLevel;
+   title: opt text;
+ };
+type IdentityStatus = 
+ variant {
+   Active;
+   Archived;
+   Pending;
+   Suspended;
+ };
+type IdentityKind = 
+ variant {
+   Individual;
+   Institution;
+   Organization;
+   Other;
+ };
+type Identity = 
+ record {
+   created_at: int;
+   identity_id: text;
+   kind: IdentityKind;
+   metadata_ref: opt text;
+   status: IdentityStatus;
+   updated_at: int;
+ };
+type HamiFundResult = 
+ variant {
+   err: text;
+   ok: HamiFund;
+ };
+type HamiFund = 
+ record {
+   activation_timestamp: opt int;
+   ai_model: opt AIModelReference;
+   ai_status: AIStrategyStatus;
+   allowed_geram: bool;
+   allowed_tokens: vec text;
+   base_currency: text;
+   created_at: int;
+   decentralized: bool;
+   description: text;
+   fund_id: text;
+   fund_type: FundType;
+   manager_id: text;
+   maturity_timestamp: opt int;
+   metadata_uri: opt text;
+   minimum_position_value: opt nat;
+   name: text;
+   risk_parameters: FundRiskParameters;
+   smart_contract_reference: opt text;
+   status: FundStatus;
+   strategy: FundStrategy;
+   target_value: nat;
+   title: text;
+ };
+type GeramCertificate = 
+ record {
+   annual_return_bps: opt nat;
+   base_value: nat;
+   certificate_id: text;
+   currency: text;
+   face_value: nat;
+   icp_valuation_timestamp: int;
+   icp_value: nat;
+   initial_holder: principal;
+   issue_timestamp: int;
+   issuer_id: text;
+   maturity_timestamp: int;
+   physical_certificate_available: bool;
+   physical_certificate_hash: opt text;
+   project_id: text;
+   qr_reference: opt text;
+   risk_level: RiskLevel;
+   token_id: nat;
+ };
+type GERAM = 
+ service {
+   activate_account: (account_id: text, now: int) -> (Result_2);
+   activate_identity: (identity_id: text, now: int) -> (Result_1);
+   activate_wallet: (wallet_id: text, now: int) -> (Result);
+   archive_account: (account_id: text, now: int) -> (Result_2);
+   archive_identity: (identity_id: text, now: int) -> (Result_1);
+   archive_wallet: (wallet_id: text, now: int) -> (Result);
+   bind_principal: (identity_id: text, principal_ref: text, now: int) ->
+    (Result_4);
+   close_account: (account_id: text, now: int) -> (Result_2);
+   close_wallet: (wallet_id: text, now: int) -> (Result);
+   create_account: (account_id: text, identity_id: text, kind: AccountKind,
+    metadata_ref: opt text, now: int) -> (Result_2);
+   create_asset: (asset: Asset) -> (AssetResult);
+   create_certificate: (certificate: GeramCertificate) -> (CertificateResult);
+   create_collateral: (collateral: Collateral) -> (CollateralResult);
+   create_contract: (contract: Contract) -> (ContractResult);
+   create_energy_verification: (verification: EnergyVerification) ->
+    (EnergyVerificationResult);
+   create_evidence: (evidence: Evidence) -> (EvidenceResult);
+   create_fund_asset: (asset: FundAsset) -> (FundAssetResult);
+   create_fund_position: (position: FundPosition) -> (FundPositionResult);
+   create_hami_fund: (fund: HamiFund) -> (HamiFundResult);
+   create_identity: (identity_id: text, kind: IdentityKind, metadata_ref:
+    opt text, now: int) -> (Result_1);
+   create_market_snapshot: (snapshot: MarketSnapshot) ->
+    (MarketSnapshotResult);
+   create_project: (project: Project) -> (ProjectResult);
+   create_valuation: (valuation: ValuationRecord) -> (ValuationResult);
+   create_verification: (verification: Verification) -> (VerificationResult);
+   create_wallet: (wallet_id: text, account_id: text, kind: WalletKind,
+    metadata_ref: opt text, now: int) -> (Result);
+   get_account: (account_id: text) -> (opt Account) query;
+   get_accounts_by_identity: (identity_id: text) -> (vec Account) query;
+   get_asset: (asset_id: text) -> (opt Asset) query;
+   get_certificate: (certificate_id: text) -> (opt GeramCertificate) query;
+   get_collateral: (collateral_id: text) -> (opt Collateral) query;
+   get_contract: (contract_id: text) -> (opt Contract) query;
+   get_energy_verification: (verification_id: text) ->
+    (opt EnergyVerification) query;
+   get_evidence: (evidence_id: text) -> (opt Evidence) query;
+   get_fund_asset: (asset_id: text) -> (opt FundAsset) query;
+   get_fund_position: (position_id: text) -> (opt FundPosition) query;
+   get_fund_transaction: (transaction_id: text) ->
+    (opt FundTransaction) query;
+   get_hami_fund: (fund_id: text) -> (opt HamiFund) query;
+   get_icrc85_stats: () ->
+    (record {
+       activeActions: nat;
+       lastActionReported: opt nat;
+       nextCycleActionId: opt nat;
+     }) query;
+   get_identity: (identity_id: text) -> (opt Identity) query;
+   get_identity_by_principal: (principal_ref: text) -> (opt Identity) query;
+   get_identity_verifications: (identity_id: text) ->
+    (vec VerificationRef) query;
+   get_market_snapshot: (certificate_id: text) -> (opt MarketSnapshot) query;
+   get_project: (project_id: text) -> (opt Project) query;
+   get_valuation: (valuation_id: text) -> (opt ValuationRecord) query;
+   get_verification: (verification_id: text) -> (opt Verification) query;
+   get_wallet: (wallet_id: text) -> (opt Wallet) query;
+   get_wallets_by_account: (account_id: text) -> (vec Wallet) query;
+   icrc7_atomic_batch_transfers: () -> (opt bool) query;
+   icrc7_balance_of: (args: BalanceOfRequest) -> (BalanceOfResponse) query;
+   icrc7_collection_metadata: () -> (CollectionMetadataResponse) query;
+   icrc7_default_take_value: () -> (opt nat) query;
+   icrc7_description: () -> (opt text) query;
+   icrc7_logo: () -> (opt text) query;
+   icrc7_max_memo_size: () -> (opt nat) query;
+   icrc7_max_query_batch_size: () -> (opt nat) query;
+   icrc7_max_take_value: () -> (opt nat) query;
+   icrc7_max_update_batch_size: () -> (opt nat) query;
+   icrc7_name: () -> (text) query;
+   icrc7_owner_of: (args: OwnerOfRequest) -> (OwnerOfResponse) query;
+   icrc7_permitted_drift: () -> (opt nat) query;
+   icrc7_supply_cap: () -> (opt nat) query;
+   icrc7_supported_standards: () -> (SupportedStandardsResponse) query;
+   icrc7_symbol: () -> (text) query;
+   icrc7_token_metadata: (args: TokenMetadataRequest) ->
+    (TokenMetadataResponse) query;
+   icrc7_tokens: (prev: opt nat, take: opt nat) -> (vec nat) query;
+   icrc7_tokens_of: (account: Account__1, prev: opt nat, take: opt nat) ->
+    (vec nat) query;
+   icrc7_total_supply: () -> (nat) query;
+   icrc7_transfer: (args: vec TransferArg) -> (vec opt TransferResult);
+   icrc7_tx_window: () -> (opt nat) query;
+   issue_certificate: (request: IssueCertificateRequest) ->
+    (IssueCertificateResult);
+   link_verification: (identity_id: text, verification_id: text) ->
+    (Result_3);
+   list_assets: () -> (vec Asset) query;
+   list_certificates: () -> (vec GeramCertificate) query;
+   list_collaterals: () -> (vec Collateral) query;
+   list_contracts: () -> (vec Contract) query;
+   list_energy_verifications: () -> (vec EnergyVerification) query;
+   list_evidence: () -> (vec Evidence) query;
+   list_fund_assets: (fund_id: opt text) -> (vec FundAsset) query;
+   list_fund_positions: (fund_id: opt text) -> (vec FundPosition) query;
+   list_fund_transactions: (fund_id: opt text) -> (vec FundTransaction) query;
+   list_hami_funds: () -> (vec HamiFund) query;
+   list_identity_bindings: (identity_id: text) ->
+    (vec PrincipalBinding) query;
+   list_market_snapshots: () -> (vec MarketSnapshot) query;
+   list_projects: () -> (vec Project) query;
+   list_valuations: () -> (vec ValuationRecord) query;
+   list_verifications: () -> (vec Verification) query;
+   record_fund_transaction: (transaction: FundTransaction) ->
+    (FundTransactionResult);
+   release_collateral: (collateral_id: text, now: int) -> (CollateralResult);
+   suspend_account: (account_id: text, now: int) -> (Result_2);
+   suspend_identity: (identity_id: text, now: int) -> (Result_1);
+   suspend_wallet: (wallet_id: text, now: int) -> (Result);
+   unbind_principal: (identity_id: text, principal_ref: text) -> (Result_4);
+   unlink_verification: (identity_id: text, verification_id: text) ->
+    (Result_3);
+   update_account: (account_id: text, kind: AccountKind, metadata_ref:
+    opt text, now: int) -> (Result_2);
+   update_identity: (identity_id: text, kind: IdentityKind, metadata_ref:
+    opt text, now: int) -> (Result_1);
+   update_wallet: (wallet_id: text, kind: WalletKind, metadata_ref: opt text,
+    now: int) -> (Result);
+   validate_certificate: (certificate_id: text) -> (ValidationResult) query;
+   validate_fund_asset: (asset_id: text) -> (ValidationResult) query;
+   validate_fund_position: (position_id: text) -> (ValidationResult) query;
+   validate_fund_transaction: (transaction_id: text) ->
+    (ValidationResult) query;
+   validate_hami_fund: (fund_id: text) -> (ValidationResult) query;
+   validate_project: (project_id: text) -> (ValidationResult) query;
+ };
+type FundType = 
+ variant {
+   Energy;
+   Housing;
+   Infrastructure;
+   Logistics;
+   MultiSector;
+   Other;
+   Production;
+   Tourism;
+ };
+type FundTransactionType = 
+ variant {
+   Adjustment;
+   AssetAcquire;
+   AssetSell;
+   Deposit;
+   Distribution;
+   Fee;
+   Rebalance;
+   Withdrawal;
+ };
+type FundTransactionResult = 
+ variant {
+   err: text;
+   ok: FundTransaction;
+ };
+type FundTransaction = 
+ record {
+   actor_principal: principal;
+   ai_generated: bool;
+   asset_id: opt text;
+   certificate_id: opt text;
+   fund_id: text;
+   position_id: opt text;
+   reference: opt text;
+   timestamp: int;
+   token_id: opt nat;
+   transaction_id: text;
+   transaction_type: FundTransactionType;
+   value: nat;
+ };
+type FundStrategy = 
+ variant {
+   Collateral;
+   Hold;
+   Income;
+   Liquidity;
+   MultiStrategy;
+   Trade;
+ };
+type FundStatus = 
+ variant {
+   Active;
+   Closed;
+   Draft;
+   Matured;
+   Paused;
+ };
+type FundRiskParameters = 
+ record {
+   max_asset_weight_bps: nat;
+   max_drawdown_bps: nat;
+   max_risk_level: RiskLevel;
+   max_single_project_weight_bps: nat;
+   min_liquidity_bps: nat;
+ };
+type FundPositionResult = 
+ variant {
+   err: text;
+   ok: FundPosition;
+ };
+type FundPosition = 
+ record {
+   active: bool;
+   asset_count: nat;
+   created_at: int;
+   current_value: nat;
+   deposited_value: nat;
+   fund_id: text;
+   owner: principal;
+   position_id: text;
+   share_units: nat;
+   updated_at: int;
+ };
+type FundAssetResult = 
+ variant {
+   err: text;
+   ok: FundAsset;
+ };
+type FundAsset = 
+ record {
+   acquisition_value: nat;
+   active: bool;
+   asset_id: text;
+   asset_type: text;
+   certificate_id: opt text;
+   current_value: nat;
+   fund_id: text;
+   project_id: opt text;
+   quantity: nat;
+   risk_level: RiskLevel;
+   token_id: opt nat;
+   valuation_timestamp: int;
+ };
+type FinancialTerms = 
+ record {
+   annual_return_bps: opt nat;
+   currency: text;
+   face_value: nat;
+   liquidity_guaranteed: bool;
+   maturity_timestamp: int;
+ };
+type EvidenceStatus = 
+ variant {
+   ACTIVE;
+   ARCHIVED;
+   DRAFT;
+   EXPIRED;
+   REVOKED;
+ };
+type EvidenceResult = 
+ variant {
+   err: text;
+   ok: Evidence;
+ };
+type Evidence = 
+ record {
+   created_at: int;
+   description: text;
+   document_hash: opt text;
+   evidence_id: text;
+   evidence_type: text;
+   issued_at: int;
+   issuer_id: text;
+   source_reference: opt text;
+   status: EvidenceStatus;
+   subject_id: text;
+   subject_type: text;
+   title: text;
+   valid_until: opt int;
+ };
+type ErrorState = 
+ variant {
+   Failed;
+   Unknown;
+ };
+type ErrorCategory = 
+ variant {
+   Authorization;
+   BusinessRule;
+   Conflict;
+   External;
+   Identity;
+   NotFound;
+   Reference;
+   RequiredField;
+   System;
+   Validation;
+ };
+type Error = 
+ record {
+   category: ErrorCategory;
+   code: text;
+   correlation_id: opt text;
+   message: text;
+   retryable: bool;
+   state: ErrorState;
+ };
+type EnergyVerificationStatus = 
+ variant {
+   Draft;
+   Expired;
+   Pending;
+   Rejected;
+   Verified;
+ };
+type EnergyVerificationResult = 
+ variant {
+   err: text;
+   ok: EnergyVerification;
+ };
+type EnergyVerification = 
+ record {
+   asset_id: text;
+   baseline_energy_m3: nat;
+   certificate_id: opt text;
+   energy_saved_m3: nat;
+   energy_saved_percent: nat;
+   heater_id: opt text;
+   heater_model: opt text;
+   measured_energy_m3: nat;
+   measurement_period_end: int;
+   measurement_period_start: int;
+   project_id: text;
+   status: EnergyVerificationStatus;
+   verification_id: text;
+   verification_method: text;
+   verification_reference: opt text;
+   verification_timestamp: int;
+   verifier_id: text;
+ };
+type ContractStatus = 
+ variant {
+   ACTIVE;
+   DRAFT;
+   EXPIRED;
+   TERMINATED;
+ };
+type ContractResult = 
+ variant {
+   err: text;
+   ok: Contract;
+ };
+type Contract = 
+ record {
+   contract_id: text;
+   contract_number: text;
+   contract_type: text;
+   created_at: int;
+   document_hash: opt text;
+   effective_timestamp: int;
+   expiry_timestamp: opt int;
+   legal_basis: opt text;
+   party_ids: vec text;
+   project_id: text;
+   status: ContractStatus;
+   version: nat;
+ };
+type CollectionMetadataResponse = 
+ vec record {
+       text;
+       Value;
+     };
+type CollateralStatus = 
+ variant {
+   ACTIVE;
+   PENDING;
+   RELEASED;
+   SUSPENDED;
+ };
+type CollateralResult = 
+ variant {
+   err: text;
+   ok: Collateral;
+ };
+type Collateral = 
+ record {
+   asset_id: text;
+   authentication_code: text;
+   collateral_id: text;
+   collateral_type: text;
+   collateral_value: nat;
+   contract_id: opt text;
+   coverage_bps: nat;
+   created_at: int;
+   effective_timestamp: int;
+   official_reference: text;
+   priority: nat;
+   project_id: text;
+   release_timestamp: opt int;
+   status: CollateralStatus;
+   valuation_reference: text;
+   valuation_timestamp: int;
+ };
+type CertificateResult = 
+ variant {
+   err: text;
+   ok: GeramCertificate;
+ };
+type BalanceOfResponse = vec nat;
+type BalanceOfRequest = vec Account__1;
+type AssetStatus = 
+ variant {
+   Active;
+   Draft;
+   Inactive;
+   Retired;
+ };
+type AssetResult = 
+ variant {
+   err: text;
+   ok: Asset;
+ };
+type AssetReference = 
+ record {
+   asset_id: text;
+   asset_type: text;
+   description: text;
+   registry_reference: opt text;
+ };
+type Asset = 
+ record {
+   asset_id: text;
+   asset_type: text;
+   created_at: int;
+   description: text;
+   external_reference: opt text;
+   metadata_uri: opt text;
+   project_id: text;
+   registry_reference: opt text;
+   status: AssetStatus;
+   title: text;
+ };
+type Account__1 = 
+ record {
+   owner: principal;
+   subaccount: opt blob;
+ };
+type AccountStatus = 
+ variant {
+   Active;
+   Archived;
+   Closed;
+   Pending;
+   Suspended;
+ };
+type AccountKind = 
+ variant {
+   Custodial;
+   Institution;
+   Organization;
+   Other;
+   Personal;
+   Settlement;
+ };
+type Account = 
+ record {
+   account_id: text;
+   created_at: int;
+   identity_id: text;
+   kind: AccountKind;
+   metadata_ref: opt text;
+   status: AccountStatus;
+   updated_at: int;
+ };
+type AIStrategyStatus = 
+ variant {
+   Advisory;
+   Assisted;
+   Automated;
+   Disabled;
+ };
+type AIModelReference = 
+ record {
+   enabled: bool;
+   endpoint_reference: opt text;
+   model_id: text;
+   model_version: text;
+   provider: opt text;
+ };
+service : () -> GERAM

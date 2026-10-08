@@ -1,0 +1,74 @@
+import Namespace "./Namespace";
+import Types "./Types";
+
+module {
+
+  // ============================================================
+  // GERAM-P1-02.5.12
+  // CANONICAL ID VALIDATOR CORE
+  //
+  // Design principles:
+  // - Structural validation only
+  // - No domain mutation
+  // - No persistence
+  // - No collision lookup
+  // - No main.mo integration
+  // - No Candid change
+  // ============================================================
+
+  public func validate(id : Types.CanonicalId) : {
+    #ok : Types.IdParts;
+    #err : Types.IdError;
+  } {
+    if (id == "") {
+      return #err(#Empty);
+    };
+
+    let separator : Text = "-";
+
+    switch (Text.split(#text separator, id).next()) {
+      case (null) {
+        return #err(#InvalidFormat);
+      };
+      case (?namespace) {
+        switch (Text.split(#text separator, id).next()) {
+          case (null) {
+            return #err(#InvalidFormat);
+          };
+          case (?suffix) {
+            if (namespace == "" or suffix == "") {
+              return #err(#InvalidFormat);
+            };
+
+            return #ok({
+              namespace = namespace;
+              suffix = suffix;
+            });
+          };
+        };
+      };
+    };
+  };
+
+  public func validateExpected(
+    id : Types.CanonicalId,
+    expected : Namespace.Namespace
+  ) : {
+    #ok : Types.IdParts;
+    #err : Types.IdError;
+  } {
+    switch (validate(id)) {
+      case (#err(error)) {
+        #err(error)
+      };
+      case (#ok(parts)) {
+        if (parts.namespace != Namespace.prefix(expected)) {
+          #err(#NamespaceMismatch)
+        } else {
+          #ok(parts)
+        }
+      };
+    };
+  };
+
+};

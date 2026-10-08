@@ -1,0 +1,65 @@
+[1mdiff --git a/backend/src/Protocol.mo b/backend/src/Protocol.mo[m
+[1mindex bc39f90..a4bb1c0 100644[m
+[1m--- a/backend/src/Protocol.mo[m
+[1m+++ b/backend/src/Protocol.mo[m
+[36m@@ -71,8 +71,8 @@[m [mmodule {[m
+     face_value : Nat;[m
+     base_value : Nat;[m
+     currency : Text;[m
+[31m-    annual_return_bps : ?Nat;[m
+[31m-    risk_level : RiskLevel;[m
+[32m+[m[32m    icp_value : Nat;[m
+[32m+[m[32m    icp_valuation_timestamp : Int;[m
+     physical_certificate_available : Bool;[m
+     physical_certificate_hash : ?Text;[m
+     qr_reference : ?Text;[m
+[1mdiff --git a/backend/src/main.mo b/backend/src/main.mo[m
+[1mindex 9f58660..945da6a 100644[m
+[1m--- a/backend/src/main.mo[m
+[1m+++ b/backend/src/main.mo[m
+[36m@@ -137,8 +137,8 @@[m [mpublic type Account = Account.Account;[m
+     base_value : Nat;[m
+     currency : Text;[m
+ [m
+[31m-    annual_return_bps : ?Nat;[m
+[31m-    risk_level : RiskLevel;[m
+[32m+[m[32m    icp_value : Nat;[m
+[32m+[m[32m    icp_valuation_timestamp : Int;[m
+ [m
+     physical_certificate_available : Bool;[m
+     physical_certificate_hash : ?Text;[m
+[36m@@ -2830,21 +2830,10 @@[m [mfor (project in projects.vals()) {[m
+       ("face_value", #Nat(request.face_value)),[m
+       ("base_value", #Nat(request.base_value)),[m
+       ("currency", #Text(request.currency)),[m
+[32m+[m[32m      ("icp_value", #Nat(request.icp_value)),[m
+[32m+[m[32m      ("icp_valuation_timestamp", #Int(request.icp_valuation_timestamp)),[m
+       ("maturity_timestamp", #Int(request.maturity_timestamp)),[m
+       ("issue_timestamp", #Int(issueTimestamp)),[m
+[31m-      ("annual_return_bps", #Option([m
+[31m-        switch (request.annual_return_bps) {[m
+[31m-          case (?value) { ?#Nat(value) };[m
+[31m-          case null { null };[m
+[31m-        }[m
+[31m-      )),[m
+[31m-      ("risk_level", #Text([m
+[31m-        switch (request.risk_level) {[m
+[31m-          case (#Low) { "Low" };[m
+[31m-          case (#Medium) { "Medium" };[m
+[31m-          case (#High) { "High" };[m
+[31m-        }[m
+[31m-      )),[m
+       ("physical_certificate_available", #Bool([m
+         request.physical_certificate_available[m
+       )),[m
+[36m@@ -2993,8 +2982,8 @@[m [mfor (project in projects.vals()) {[m
+       face_value = request.face_value;[m
+       base_value = request.base_value;[m
+       currency = request.currency;[m
+[31m-      annual_return_bps = request.annual_return_bps;[m
+[31m-      risk_level = request.risk_level;[m
+[32m+[m[32m      icp_value = request.icp_value;[m
+[32m+[m[32m      icp_valuation_timestamp = request.icp_valuation_timestamp;[m
+       physical_certificate_available =[m
+         request.physical_certificate_available;[m
+       physical_certificate_hash =[m
