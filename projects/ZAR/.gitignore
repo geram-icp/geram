@@ -1,0 +1,21 @@
+# Secrets and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.seed
+*mnemonic*
+*recovery*
+*password*
+*secret*
+*token*
+
+# Build artifacts and local state
+node_modules/
+dist/
+build/
+target/
+.cache/
+.DS_Store
+*.wasm
